@@ -1,0 +1,285 @@
+/* Base paint so soft-nav never flashes bare white while page CSS swaps */
+html {
+  background: #1a1410;
+}
+
+html[data-theme="dark"] {
+  background: #0c0a08;
+}
+
+/* Soft-nav: kill entrance motion (keeps player/toggle visually still) */
+html.has-soft-nav,
+html.has-soft-nav body {
+  scroll-behavior: auto !important;
+}
+
+html.has-soft-nav .page,
+html.has-soft-nav .brand,
+html.has-soft-nav .nav,
+html.has-soft-nav .featured,
+html.has-soft-nav .post-card,
+html.has-soft-nav .sidebar,
+html.has-soft-nav .site-footer,
+html.has-soft-nav .page-intro,
+html.has-soft-nav .notes-list,
+html.has-soft-nav .about-layout,
+html.has-soft-nav .article-header,
+html.has-soft-nav .article-hero,
+html.has-soft-nav .article-body,
+html.has-soft-nav .wrap,
+html.has-soft-nav .archive-bar,
+html.has-soft-nav section,
+html.has-soft-nav header.mast {
+  animation: none !important;
+  transition: none !important;
+}
+
+html.has-soft-nav body {
+  transition: none !important;
+}
+
+/* Theme toggle — shared across archive pages */
+
+.theme-toggle {
+  position: fixed;
+  top: 1.15rem;
+  left: 1.15rem;
+  z-index: 50;
+  animation: none !important;
+  transform: none !important;
+  width: 3rem;
+  height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #241c14;
+  background:
+    linear-gradient(
+      175deg,
+      #f5eee0 0%,
+      #ebe2d0 100%
+    );
+  border: 1.5px solid rgba(90, 70, 40, 0.45);
+  box-shadow:
+    0 10px 28px rgba(20, 12, 6, 0.4),
+    0 0 0 1px rgba(255, 248, 230, 0.35) inset;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.theme-toggle:hover {
+  color: var(--accent, #5c4030);
+  border-color: rgba(90, 70, 40, 0.4);
+}
+
+.theme-toggle-sun,
+.theme-toggle-moon {
+  display: flex;
+  line-height: 0;
+}
+
+.theme-toggle-moon {
+  display: none;
+}
+
+.theme-toggle.is-dark .theme-toggle-sun {
+  display: none;
+}
+
+.theme-toggle.is-dark .theme-toggle-moon {
+  display: flex;
+}
+
+html[data-theme="dark"] .theme-toggle {
+  color: #ede4d4;
+  background:
+    linear-gradient(
+      175deg,
+      rgba(28, 22, 18, 0.9) 0%,
+      rgba(18, 14, 12, 0.88) 100%
+    );
+  border-color: rgba(232, 220, 190, 0.22);
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 230, 190, 0.06) inset;
+}
+
+html[data-theme="dark"] .theme-toggle:hover {
+  color: #e2c58d;
+  border-color: rgba(232, 220, 190, 0.4);
+}
+
+@media (max-width: 520px) {
+  .theme-toggle {
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .theme-toggle svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Compact player (shared; needs --ink/--panel-fill/--rule/--sepia) */
+.listening {
+  position: fixed;
+  top: 1.1rem;
+  right: 1.1rem;
+  z-index: 50;
+  width: min(320px, calc(100vw - 1.5rem));
+  pointer-events: none;
+  /* Stable chrome — never animate position/opacity */
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+.listening-inner {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 0.65rem;
+  row-gap: 0.35rem;
+  align-items: center;
+  padding: 0.55rem 0.75rem 0.5rem;
+  background: linear-gradient(175deg, var(--panel-fill, rgba(240, 230, 210, 0.9)) 0%, var(--panel-fill-b, rgba(235, 226, 208, 0.86)) 100%);
+  border: 1px solid var(--rule, rgba(74, 55, 35, 0.22));
+  box-shadow: 0 10px 28px var(--shadow, rgba(20, 12, 6, 0.35));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: none !important;
+  transition: none !important;
+}
+
+.listening-btn {
+  appearance: none;
+  border: 1px solid var(--rule, rgba(74, 55, 35, 0.22));
+  background: rgba(255, 252, 245, 0.2);
+  color: var(--ink, #2a2118);
+  width: 1.7rem;
+  height: 1.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: var(--font-heading, Georgia, serif);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.listening-btn:hover {
+  background: var(--ink, #2a2118);
+  color: var(--parchment, #ebe2d0);
+  border-color: var(--ink, #2a2118);
+}
+
+.listening-play { grid-row: 1; grid-column: 1; }
+
+.listening-meta {
+  grid-row: 1;
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.listening-kicker {
+  font-family: var(--font-heading, Georgia, serif);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sepia, #8b7355);
+}
+
+.listening-title {
+  font-family: var(--font-heading, Georgia, serif);
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--ink, #2a2118);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listening.is-playing .listening-kicker::after {
+  content: "";
+  display: inline-block;
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-left: 0.4rem;
+  border-radius: 50%;
+  background: var(--sepia, #8b7355);
+  vertical-align: middle;
+  animation: listeningPulse 1.4s ease-in-out infinite;
+}
+
+.listening-controls {
+  grid-row: 1;
+  grid-column: 3;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.listening-controls .listening-btn {
+  width: 1.45rem;
+  height: 1.45rem;
+  font-size: 1.15rem;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft, #4a3f32);
+}
+
+.listening-controls .listening-btn:hover {
+  background: transparent;
+  color: var(--ink, #2a2118);
+}
+
+.listening-progress {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  height: 2px;
+  background: var(--rule, rgba(74, 55, 35, 0.22));
+  cursor: pointer;
+}
+
+.listening-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--sepia, #8b7355);
+}
+
+html[data-theme="dark"] .listening-btn {
+  background: rgba(255, 240, 210, 0.06);
+}
+
+html[data-theme="dark"] .listening-btn:hover {
+  background: var(--ink, #ede4d4);
+  color: #1a1410;
+  border-color: var(--ink, #ede4d4);
+}
+
+@keyframes listeningPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 520px) {
+  .listening {
+    top: 0.65rem;
+    right: 0.65rem;
+    width: min(280px, calc(100vw - 1.25rem));
+  }
+}

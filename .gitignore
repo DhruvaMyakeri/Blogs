@@ -1,0 +1,12 @@
+.DS_Store
+Thumbs.db
+desktop.ini
+.vercel
+.env
+.env.*
+!.env.example
+node_modules/
+.vscode/
+.idea/
+*.log
+_fix_emdash.py

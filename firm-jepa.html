@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firm-State JEPA · project record</title>
+<script>document.documentElement.setAttribute("data-theme", localStorage.getItem("archive-theme") === "dark" ? "dark" : "light");</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/theme.css">
+<style>
+  :root{
+    /* Light = Latent Archive parchment (not the standalone green ledger page) */
+    --paper:#f0e6d2;
+    --paper-alt:#ebe2d0;
+    --ink:#241c14;
+    --ink-soft:#3d3228;
+    --rule:rgba(74,55,35,.28);
+    --rule-soft:rgba(74,55,35,.14);
+    --red:#7a2e24;
+    --blue:#5c4030;
+    --sepia:#8b7355;
+    --accent:#5c4030;
+    --parchment:#ebe2d0;
+    --maxw:860px;
+    --page-max:1080px;
+    --ease:cubic-bezier(.22,1,.36,1);
+    --font-heading:"IBM Plex Sans Condensed",sans-serif;
+    --panel-fill:rgba(245,238,224,.82);
+    --panel-fill-b:rgba(240,230,210,.78);
+    --shadow:rgba(20,12,6,.45);
+    --bg-base:#1a1410;
+    --bg-image:url("assets/images/bg-landscape.png");
+    --bg-overlay-top:rgba(18,12,8,.18);
+    --bg-overlay-bottom:rgba(18,12,8,.32);
+    --wrap-bg:linear-gradient(175deg,rgba(240,230,210,.72) 0%,rgba(235,226,208,.66) 40%,rgba(221,210,187,.7) 100%);
+    --diagram-bg:transparent;
+    --diagram-pad:0;
+    --diagram-border:transparent;
+    --diagram-caption:var(--ink-soft);
+    --diagram-caption-strong:var(--ink);
+    --diagram-shadow:none;
+  }
+  html[data-theme="dark"]{
+    --paper:#14110f;
+    --paper-alt:#1c1814;
+    --ink:#ede4d4;
+    --ink-soft:#cfc0ab;
+    --rule:rgba(232,220,190,.2);
+    --rule-soft:rgba(232,220,190,.12);
+    --red:#e07a6c;
+    --blue:#c9a86c;
+    --sepia:#c4a574;
+    --accent:#e2c58d;
+    --parchment:#14110f;
+    --panel-fill:rgba(28,22,18,.92);
+    --panel-fill-b:rgba(18,14,12,.9);
+    --shadow:rgba(0,0,0,.55);
+    --bg-base:#0c0a08;
+    --bg-image:url("assets/images/bg-dark.png");
+    --bg-overlay-top:rgba(8,6,5,.5);
+    --bg-overlay-bottom:rgba(8,6,5,.64);
+    --wrap-bg:rgba(16,12,10,.88);
+    --diagram-bg:#EDF0E6;
+    --diagram-pad:18px 16px 14px;
+    --diagram-border:1px solid rgba(232,220,190,.22);
+    --diagram-caption:#4E584F;
+    --diagram-caption-strong:#1A1F1C;
+    --diagram-shadow:0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{
+    margin:0;
+    min-height:100vh;
+    background-color:var(--bg-base);
+    background-image:
+      linear-gradient(180deg,var(--bg-overlay-top) 0%,var(--bg-overlay-bottom) 100%),
+      var(--bg-image);
+    background-size:cover;
+    background-position:center;
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:"IBM Plex Serif",Georgia,serif;
+    font-size:17px;
+    line-height:1.66;
+    padding:2.5rem 1rem 3rem;
+    transition:color .3s var(--ease),background-color .3s var(--ease);
+  }
+
+  .archive-bar{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    max-width:var(--page-max);
+    margin:0 auto;
+    border:1px solid var(--rule);
+    border-bottom:none;
+    background:rgba(240,230,210,.7);
+    backdrop-filter:blur(3px);
+  }
+  html[data-theme="dark"] .archive-bar{
+    background:rgba(16,12,10,.82);
+  }
+  .archive-bar-inner{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:12px 24px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:8px 16px;
+    align-items:center;
+  }
+  .archive-bar a{color:var(--ink-soft);text-decoration:none}
+  .archive-bar a:hover{color:var(--ink)}
+  .archive-bar .sep{color:var(--sepia);opacity:.55;margin:0 8px}
+
+  .wrap{
+    position:relative;
+    max-width:var(--page-max);
+    margin:0 auto;
+    padding:1.5rem 2.5rem 4.5rem;
+    background:var(--wrap-bg);
+    border:1px solid var(--rule);
+    box-shadow:
+      0 0 0 1px rgba(90,70,40,.08),
+      0 25px 60px var(--shadow);
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+  }
+  .wrap > *{max-width:var(--maxw);margin-left:auto;margin-right:auto}
+
+  /* ---- masthead ---- */
+  header.mast{
+    border-bottom:2px solid var(--ink);
+    margin:0 0 8px;
+    padding:56px 0 18px;
+  }
+  .mast h1{
+    font-family:"IBM Plex Sans Condensed",sans-serif;
+    font-weight:700;
+    font-size:clamp(38px,7vw,64px);
+    line-height:1.02;
+    letter-spacing:-0.02em;
+    margin:0 0 14px;
+    text-transform:uppercase;
+  }
+  .mast .sub{
+    font-size:19px;
+    font-style:italic;
+    color:var(--ink-soft);
+    max-width:52ch;
+    margin:0 0 24px;
+  }
+  .filing{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:4px 20px;
+    border-top:1px solid var(--rule);
+    padding-top:12px;
+  }
+  .filing b{color:var(--ink);font-weight:600}
+
+  /* ---- ledger sections ---- */
+  section{padding:44px 0 8px;border-top:1px solid var(--rule);}
+  section:first-of-type{border-top:none}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+  .eyebrow b{color:var(--red);font-weight:600}
+  h2{
+    font-family:"IBM Plex Sans Condensed",sans-serif;
+    font-weight:600;
+    font-size:clamp(26px,4vw,36px);
+    line-height:1.1;
+    letter-spacing:-0.01em;
+    margin:0 0 20px;
+  }
+  h3{
+    font-family:"IBM Plex Sans Condensed",sans-serif;
+    font-weight:600;
+    font-size:19px;
+    letter-spacing:.01em;
+    margin:32px 0 10px;
+  }
+  p{margin:0 0 18px}
+  a{color:var(--blue)}
+  strong{font-weight:600}
+  em{font-style:italic}
+  code,.mono{font-family:"IBM Plex Mono",monospace;font-size:.88em}
+  code{background:var(--paper-alt);padding:1px 5px;border-radius:2px}
+
+  ul{margin:0 0 18px;padding-left:0;list-style:none}
+  ul li{position:relative;padding-left:22px;margin-bottom:9px}
+  ul li:before{
+    content:"·";position:absolute;left:0;top:0;
+    color:var(--rule);font-family:"IBM Plex Mono",monospace;
+  }
+
+  /* ---- callouts ---- */
+  .note{
+    border-left:3px solid var(--rule);
+    padding:2px 0 2px 18px;
+    margin:0 0 20px;
+    color:var(--ink-soft);
+    font-size:16px;
+  }
+  .broke{
+    border-left:3px solid var(--red);
+    background:rgba(122,46,36,.06);
+    padding:14px 18px;
+    margin:0 0 20px;
+  }
+  .broke .lbl{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--red);display:block;margin-bottom:6px;font-weight:600;
+  }
+  .decided{
+    border-left:3px solid var(--blue);
+    background:rgba(92,64,48,.06);
+    padding:14px 18px;
+    margin:0 0 20px;
+  }
+  .decided .lbl{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--blue);display:block;margin-bottom:6px;font-weight:600;
+  }
+
+  /* ---- tables ---- */
+  table{
+    width:100%;border-collapse:collapse;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:13px;margin:0 0 22px;
+  }
+  caption{
+    text-align:left;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-soft);padding-bottom:7px;
+  }
+  th{
+    text-align:right;font-weight:600;
+    border-bottom:1.5px solid var(--ink);
+    padding:5px 9px;white-space:nowrap;
+  }
+  th:first-child{text-align:left}
+  td{
+    text-align:right;padding:5px 9px;
+    border-bottom:1px solid var(--rule-soft);
+    white-space:nowrap;
+  }
+  td:first-child{text-align:left}
+  tbody tr:nth-child(even){background:rgba(0,0,0,.022)}
+  .neg{color:var(--red)}
+  .pos{font-weight:600}
+  .hi{background:rgba(92,64,48,.1)!important}
+
+  /* ---- figures ---- */
+  figure{
+    margin:26px 0 28px;
+    background:var(--diagram-bg);
+    padding:var(--diagram-pad);
+    border:var(--diagram-border);
+    box-shadow:var(--diagram-shadow);
+  }
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;color:var(--ink-soft);
+    letter-spacing:.02em;line-height:1.5;
+    border-top:1px solid var(--rule);padding-top:8px;margin-top:10px;
+  }
+  figcaption b{color:var(--ink);font-weight:600}
+  html[data-theme="dark"] figcaption{
+    color:var(--diagram-caption);
+    border-top-color:#B9C5B1;
+  }
+  html[data-theme="dark"] figcaption b{color:var(--diagram-caption-strong)}
+  html[data-theme="dark"] .eq{
+    background:#E4E9DA;
+    color:#1A1F1C;
+    border-left-color:#B9C5B1;
+  }
+  html[data-theme="dark"] .eq .lbl,
+  html[data-theme="dark"] .eq .op,
+  html[data-theme="dark"] .eq .eqn,
+  html[data-theme="dark"] .eq var,
+  html[data-theme="dark"] .eq b,
+  html[data-theme="dark"] .eq strong{color:#1A1F1C}
+  html[data-theme="dark"] .eq .fn{color:#2B4C7E}
+  html[data-theme="dark"] .eq .where{
+    color:#4E584F;
+    border-top-color:#B9C5B1;
+  }
+  html[data-theme="dark"] .eq .where b{color:#1A1F1C}
+  html[data-theme="dark"] .eq .cases{border-left-color:#1A1F1C}
+  html[data-theme="dark"] code{background:rgba(255,240,210,.08)}
+  html[data-theme="dark"] .broke{background:rgba(224,122,108,.12)}
+  html[data-theme="dark"] .decided{background:rgba(201,168,108,.1)}
+  html[data-theme="dark"] .hi{background:rgba(201,168,108,.14)!important}
+  html[data-theme="dark"] tbody tr:nth-child(even){background:rgba(255,240,210,.04)}
+  html[data-theme="dark"] .listening-btn:hover{
+    background:var(--ink);
+    color:#14110f;
+  }
+
+  .pull{
+    font-family:"IBM Plex Sans Condensed",sans-serif;
+    font-size:clamp(21px,3.2vw,27px);
+    line-height:1.25;font-weight:500;
+    border-top:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
+    padding:20px 0;margin:30px 0;
+  }
+
+  .kv{
+    display:grid;grid-template-columns:1fr;gap:0;
+    border-top:1.5px solid var(--ink);margin:0 0 24px;
+  }
+  .kv div{
+    display:flex;justify-content:space-between;gap:16px;
+    border-bottom:1px solid var(--rule-soft);
+    padding:7px 0;
+    font-family:"IBM Plex Mono",monospace;font-size:13px;
+  }
+  .kv span:first-child{color:var(--ink-soft)}
+  .kv span:last-child{font-weight:600;text-align:right}
+
+  /* ---- math ---- */
+  .eq{
+    background:var(--paper-alt);
+    border-left:3px solid var(--rule);
+    padding:15px 18px 13px;
+    margin:0 0 20px;
+    overflow-x:auto;
+  }
+  .eq .lbl{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-soft);display:block;margin-bottom:10px;font-weight:600;
+  }
+  .eq .line{
+    display:block;font-size:16.5px;line-height:2.0;white-space:nowrap;
+  }
+  .eq .line.ind{padding-left:2.2em}
+  var{font-style:italic;font-family:"IBM Plex Serif",Georgia,serif}
+  .op{font-style:normal;padding:0 .2em;color:var(--ink-soft)}
+  .fn{
+    font-style:normal;font-family:"IBM Plex Sans Condensed",sans-serif;
+    font-weight:600;font-size:.9em;letter-spacing:.01em;
+  }
+  .sb{font-size:.68em;vertical-align:-.3em;font-style:italic}
+  .sp{font-size:.68em;vertical-align:.55em;font-style:normal}
+  .eqn{
+    float:right;font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;color:var(--ink-soft);padding-top:5px;
+  }
+  .where{
+    font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+    color:var(--ink-soft);line-height:1.8;
+    border-top:1px solid var(--rule-soft);margin-top:12px;padding-top:9px;
+  }
+  .where b{color:var(--ink);font-weight:600}
+  .cases{
+    display:inline-block;vertical-align:middle;
+    border-left:2px solid var(--ink);padding-left:14px;margin-left:6px;
+  }
+  .cases .c{display:block;font-size:15.5px;line-height:1.9;white-space:nowrap}
+  /* <big> is obsolete in HTML5 but universally rendered; pin it so delimiters
+     and summation signs scale identically across user agents. */
+  big{font-size:1.28em;font-weight:400;line-height:1}
+
+  footer{
+    border-top:2px solid var(--ink);margin-top:60px;padding-top:18px;
+    font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+    color:var(--ink-soft);letter-spacing:.04em;
+  }
+  @media(max-width:640px){
+    body{font-size:16px;padding:1.25rem .65rem 2rem}
+    table{font-size:11.5px}
+    th,td{padding:4px 5px}
+    .wrap{padding:1rem 1.15rem 3rem}
+  }
+  /* No section entrance motion ; soft-nav stays still */
+</style>
+</head>
+<body>
+<nav class="archive-bar" aria-label="Archive">
+  <div class="archive-bar-inner">
+    <a href="index.html">← The Latent Archive</a>
+    <span>
+      <a href="notes.html">Notes</a><span class="sep">|</span>
+      <a href="about.html">About</a><span class="sep">|</span>
+      <a href="mailto:zapdhruva@gmail.com">Contact</a>
+    </span>
+  </div>
+</nav>
+<div class="wrap">
+
+<header class="mast">
+  <h1>Firm-State<br>JEPA</h1>
+  <p class="sub">I wanted to know whether a company's financial history carries information its current balance sheet does not. This is the full record of finding out ; the question, every decision, what broke, and what the data said back.</p>
+  <div class="filing">
+    <span>Period <b>2013Q1 – 2020Q4</b></span>
+    <span>Firms <b>11,742</b></span>
+    <span>Observations <b>215,944</b></span>
+    <span>Result <b>1 finding, 4 negatives</b></span>
+  </div>
+</header>
+
+<!-- 00 -->
+<section>
+  <p class="eyebrow">Entry 00 ; the one-sentence version</p>
+  <h2>Companies are trajectories, not documents</h2>
+  <p>Every AI system built for accounting and legal work treats a client as a pile of text. Chunk the documents, embed the chunks, retrieve the relevant ones. That works for finding things. It does not work for noticing that something is wrong.</p>
+  <p>A client firm is not a pile. It is a <em>state that evolves</em>. A ledger in March is February's ledger plus a set of transactions. That is a transition model, not a retrieval problem. This project tests whether treating it that way actually buys anything measurable.</p>
+  <div class="decided">
+    <span class="lbl">The claim under test</span>
+    If firm financial state is genuinely path-dependent, a model trained on correctly-ordered histories should predict the future better than the same model trained on shuffled ones. If order doesn't matter, the whole framing is wrong and the honest move is to say so.
+  </div>
+
+<h3>The answer, before the details</h3>
+  <p>Nothing below is a build-up to a product. One thing worked, several did not, and the failures took more effort to establish than the success. Stated at the top so no one has to scroll for it:</p>
+  <div class="kv">
+    <div><span>Order carries predictive signal</span><span>YES &#183; +21.4%, monotone in length</span></div>
+    <div><span>JEPA collapses onto firm size</span><span>YES &#183; mechanism diagnosed, entry 07</span></div>
+    <div><span>Early warning of firm exit</span><span>NO &#183; flat at every horizon</span></div>
+    <div><span>Early warning of restatement</span><span>NO &#183; flat at every horizon</span></div>
+    <div><span>Detection at arrival</span><span>WEAK &#183; d = 0.24 vs 0.13&#8211;0.16 floor</span></div>
+    <div><span>Label-efficient probing</span><span>NO &#183; 17&#8211;30% of own lift at N=50</span></div>
+  </div>
+  <p class="note">Two of those negatives were originally positives that did not survive being checked properly ; one an unfair evaluation, one an event set that was 41.9% artifact. Those checks are entries 08 and 11, and they are the parts of this worth reading.</p>
+</section>
+
+<!-- 01 -->
+<section>
+  <p class="eyebrow">Entry 01 ; the idea that started it</p>
+  <h2>Why I thought this might work</h2>
+  <p>This section is the hypothesis, not the result. Each part of it carries the verdict the experiments returned, stated here rather than four entries later, because the shape of the reasoning is worth keeping even where the data disagreed with it.</p>
+
+  <h3>The observation the whole thing rests on</h3>
+  <p>Suppose an accounting firm reconciles a hundred client ledgers a month and wants to know which ones to look at. Every available tool needs labels. Beneish and Dechow were fitted on known fraud cases. Distress models need bankruptcies. Rules engines need somebody to write rules, one at a time, forever.</p>
+  <p>That firm has zero labeled anomalies. Nobody kept that dataset, and the clients are private, so there are no restatements or enforcement filings to borrow. Every supervised method is unusable on day one and stays that way until someone spends two years labeling.</p>
+  <p>A model that trains on each client's own history predicting its own next state needs none of that. Prediction error becomes a signal at zero labeling cost. That asymmetry is what made the idea seem worth a few weeks.</p>
+
+  <figure>
+    <svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: observed state compared against predicted state, with the gap routing to either auto-approve or human review">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#4E584F"/>
+        </marker>
+        <marker id="arR" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#A3261E"/>
+        </marker>
+      </defs>
+      <g font-family="IBM Plex Mono, monospace" font-size="12">
+        <text x="0" y="26" fill="#4E584F" font-size="11" letter-spacing="1.5">CLIENT HISTORY</text>
+        <g fill="#2B4C7E">
+          <rect x="0" y="40" width="26" height="52" opacity=".28"/>
+          <rect x="34" y="34" width="26" height="58" opacity=".38"/>
+          <rect x="68" y="44" width="26" height="48" opacity=".5"/>
+          <rect x="102" y="30" width="26" height="62" opacity=".62"/>
+          <rect x="136" y="38" width="26" height="54" opacity=".8"/>
+        </g>
+        <text x="0" y="108" fill="#4E584F" font-size="10.5">Q1 &#8230; Q5</text>
+
+        <line x1="176" y1="66" x2="222" y2="66" stroke="#4E584F" stroke-width="1.4" marker-end="url(#ar)"/>
+
+        <rect x="230" y="34" width="170" height="64" fill="none" stroke="#1A1F1C" stroke-width="1.6"/>
+        <text x="315" y="60" text-anchor="middle" fill="#1A1F1C" font-size="12.5" font-weight="600">TRANSITION</text>
+        <text x="315" y="78" text-anchor="middle" fill="#1A1F1C" font-size="12.5" font-weight="600">MODEL</text>
+
+        <line x1="400" y1="66" x2="446" y2="66" stroke="#4E584F" stroke-width="1.4" marker-end="url(#ar)"/>
+        <rect x="454" y="40" width="120" height="52" fill="#2B4C7E" opacity=".18"/>
+        <rect x="454" y="40" width="120" height="52" fill="none" stroke="#2B4C7E" stroke-width="1.4"/>
+        <text x="514" y="63" text-anchor="middle" fill="#2B4C7E" font-size="11.5">PREDICTED</text>
+        <text x="514" y="80" text-anchor="middle" fill="#2B4C7E" font-size="11.5">STATE Q6</text>
+
+        <rect x="454" y="148" width="120" height="52" fill="none" stroke="#1A1F1C" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <text x="514" y="171" text-anchor="middle" fill="#1A1F1C" font-size="11.5">OBSERVED</text>
+        <text x="514" y="188" text-anchor="middle" fill="#1A1F1C" font-size="11.5">STATE Q6</text>
+        <text x="330" y="180" fill="#4E584F" font-size="11">new filing arrives</text>
+        <line x1="440" y1="174" x2="446" y2="174" stroke="#4E584F" stroke-width="1.4" marker-end="url(#ar)"/>
+
+        <line x1="514" y1="92" x2="514" y2="148" stroke="#A3261E" stroke-width="1.6" stroke-dasharray="3 3"/>
+        <text x="524" y="124" fill="#A3261E" font-size="11.5" font-weight="600">gap</text>
+
+        <line x1="574" y1="66" x2="628" y2="66" stroke="#4E584F" stroke-width="1.4" marker-end="url(#ar)"/>
+        <text x="640" y="55" fill="#1A1F1C" font-size="12" font-weight="600">SMALL GAP</text>
+        <text x="640" y="72" fill="#4E584F" font-size="11.5">model expected this</text>
+        <text x="640" y="88" fill="#4E584F" font-size="11.5">&#8594; auto-approve</text>
+
+        <line x1="574" y1="174" x2="628" y2="174" stroke="#A3261E" stroke-width="1.4" marker-end="url(#arR)"/>
+        <text x="640" y="163" fill="#A3261E" font-size="12" font-weight="600">LARGE GAP</text>
+        <text x="640" y="180" fill="#4E584F" font-size="11.5">unlike this client</text>
+        <text x="640" y="196" fill="#4E584F" font-size="11.5">&#8594; human reviews</text>
+
+        <line x1="0" y1="240" x2="860" y2="240" stroke="#B9C5B1" stroke-width="1"/>
+        <text x="0" y="264" fill="#4E584F" font-size="11.5">The loop as imagined. Entry 11 measures what the gap actually tracks.</text>
+      </g>
+    </svg>
+    <figcaption><b>The mechanism, as hypothesised.</b> Predict the next state from history; when the filing arrives, the gap is the signal. One mechanism doing two jobs ; anomaly detector and confidence router. This is the diagram I started with. It survives as a description of what was built and not as a description of what works.</figcaption>
+  </figure>
+
+  <h3>Three things I expected to fall out, and what happened to each</h3>
+
+  <div class="broke">
+    <span class="lbl">Client-specific anomaly detection &#183; did not hold</span>
+    The reasoning: a population-trained detector flags deviation from a global norm, which is why such systems fire constantly on seasonal or structurally unusual firms and get muted. A per-client transition model would learn what normal means <em>for that client</em>. <strong>Measured (Entry 11):</strong> no early warning of anything, at any horizon, for either event type, under every scoring variant. Detection at arrival is weak ; d = 0.24 against a pre-event noise band of 0.13 to 0.16.
+  </div>
+
+  <div class="broke">
+    <span class="lbl">Confidence routing &#183; untested</span>
+    The reasoning: extraction pipelines label outputs verified, extracted or estimated using heuristics about the source. Prediction error is a better basis ; if the extracted number matches what the state model expects, skip the human. <strong>Status:</strong> never built. It inherits whatever the anomaly signal is worth, and Entry 11 says that is currently not much.
+  </div>
+
+  <div class="broke">
+    <span class="lbl">Label efficiency &#183; did not hold</span>
+    The reasoning: a frozen encoder should let a firm with fifty labeled examples fit a linear probe, where training from scratch would need thousands. <strong>Measured (Entry 10):</strong> at fifty labels the encoder recovers 17&#8211;30% of its own full-label performance, and never beats gradient boosting at equal label count.
+  </div>
+
+  <p>What did survive is narrower and sits underneath all three: the claim that a firm's history carries information its current state does not. That is Entry 09, it is the one thing the project established, and it is a statement about representation rather than about products.</p>
+
+  <div class="pull">The interesting question was never "does this beat fraud detection." It was whether order in a company's financial history means anything at all. That one has an answer.</div>
+</section>
+
+<!-- 02 -->
+<section>
+  <p class="eyebrow">Entry 02 ; the data</p>
+  <h2>Why SEC filings, when the target is private firms</h2>
+  <p>Private client ledgers are not obtainable, and never will be for a project like this. But the mechanism has to be proved somewhere, and public company filings are the one place where firm-state trajectories are public and where restatements provide ground truth.</p>
+  <p>The source is the SEC Financial Statement Data Sets: free bulk downloads, standardized XBRL tags, every filer since 2009. Two files matter. <code>sub.txt</code> is one row per filing. <code>num.txt</code> is one row per reported number.</p>
+  <p>The academic literature on this data runs cross-sectional classifiers over hand-engineered ratios. Nobody has learned a latent transition model over firm state with a non-generative objective. So the data is well-trodden and the treatment is not.</p>
+  <div class="note">Scope of the download: 32 quarterly ZIPs covering 2013Q1 through 2020Q4. 2.7 GB compressed, 11 GB extracted, roughly 100 million raw numeric rows.</div>
+</section>
+
+<!-- 03 -->
+<section>
+  <p class="eyebrow">Entry 03 ; <b>four wrong assumptions</b></p>
+  <h2>What the data turned out to actually be</h2>
+  <p>The project spec described the data before anyone looked at it. Four of those descriptions were wrong, and each was wrong in the direction of underestimating the work. This is the part that took the longest and it is the part that would have quietly ruined everything downstream.</p>
+
+  <div class="broke">
+    <span class="lbl">Wrong 01 ; a quarterly file is not a quarter of data</span>
+    The SEC bundles by <em>filing date</em>, not by period covered. So <code>2015q1.zip</code> is overwhelmingly FY2014 annual reports, because calendar Q1 is 10-K season: 792,898 rows describing 2014 against 37,675 describing 2015. Worse, a single filing carries many periods ; median 5, maximum 44 ; because annual reports restate prior years as comparatives. <strong>Fix:</strong> an observation is <code>(cik, ddate)</code>, assembled across many files. Never read off one.
+  </div>
+
+  <div class="broke">
+    <span class="lbl">Wrong 02 ; 46% of the rows are not firm-level</span>
+    A column the spec never mentioned, <code>segments</code>, marks rows that are breakdowns by geography, product line, or business unit. Another 10% are subsidiary-level via <code>coreg</code>. Without filtering these out, one tag has fifteen rows for one firm-period and the vector is undefined. <strong>Fix:</strong> consolidated rows only.
+  </div>
+
+  <div class="broke">
+    <span class="lbl">Wrong 03 ; flows are cumulative, and Q4 doesn't exist</span>
+    The <code>qtrs</code> column gives the duration a number covers. Balance-sheet items are instants and are clean. Income and cash-flow items are year-to-date: a Q3 filing reports nine months, not the third quarter. Only 15.7% of flow facts are discrete single quarters. And no filer reports Q4 ; the 10-K gives the full year, so Q4 must be derived by subtraction. <strong>Fix:</strong> Phase 1 uses balance-sheet instants only. Flows are deferred to Phase 2.
+  </div>
+
+  <div class="broke">
+    <span class="lbl">Wrong 04 ; trajectories are 18 quarters, not 40 to 60</span>
+    Measured across the full 32-quarter window: median 18 balance-sheet quarters, p95 of 33, and a hard ceiling of 36 because that is the window. Only 0.52% of firms reach 36. The spec's 40–60 figure is not just wrong, it is untestable without data back to roughly 2005.
+  </div>
+
+  <h3>The one decision that mattered most: which version of a number to use</h3>
+  <p>4.5% of facts get re-reported later with a different value ; and across the full 32 quarters, <strong>51.4% of all facts were re-reports</strong> of a period already covered. So a vintage has to be chosen, and it is not a coin flip.</p>
+  <div class="decided">
+    <span class="lbl">Decision ; as-first-reported, always</span>
+    Take the earliest filing date. Using latest-reported would give the <em>corrected</em> numbers, which means the original errors have been erased from the dataset. An anomaly detector would then be trained on data where the anomalies were quietly fixed, and evaluated on its ability to find them. It would look mysteriously bad and nobody would know why. This is lookahead leakage in its purest form.
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 860 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Funnel from 14.8 million filtered rows down to 215,944 model-ready observations">
+      <g font-family="IBM Plex Mono, monospace" font-size="12">
+        <text x="0" y="16" fill="#4E584F" font-size="11" letter-spacing="1.5">FROM RAW FILINGS TO MODEL INPUT</text>
+
+        <rect x="0" y="34" width="820" height="26" fill="#2B4C7E" opacity=".85"/>
+        <text x="10" y="52" fill="#EDF0E6" font-size="12" font-weight="600">~100,000,000 raw numeric rows</text>
+
+        <rect x="0" y="70" width="410" height="26" fill="#2B4C7E" opacity=".7"/>
+        <text x="10" y="88" fill="#EDF0E6" font-size="12">14,805,869 &#183; balance-sheet instants, consolidated, standard tags</text>
+
+        <rect x="0" y="106" width="199" height="26" fill="#2B4C7E" opacity=".55"/>
+        <text x="209" y="124" fill="#1A1F1C" font-size="12">7,193,988 &#183; as-first-reported <tspan fill="#A3261E">(51.4% were re-reports)</tspan></text>
+
+        <rect x="0" y="142" width="46" height="26" fill="#2B4C7E" opacity=".4"/>
+        <text x="56" y="160" fill="#1A1F1C" font-size="12">269,021 firm-quarters &#183; all</text>
+
+        <rect x="0" y="178" width="37" height="26" fill="#A3261E" opacity=".75"/>
+        <text x="47" y="196" fill="#1A1F1C" font-size="12" font-weight="600">215,944 observations &#183; real balance sheets, one per quarter</text>
+
+        <line x1="0" y1="222" x2="860" y2="222" stroke="#B9C5B1" stroke-width="1"/>
+        <text x="0" y="243" fill="#4E584F" font-size="11.5">11,742 firms &#183; 31 slots per observation &#183; 61.7% of slots observed, the rest masked</text>
+      </g>
+    </svg>
+    <figcaption><b>The cascade.</b> Bar widths are proportional within each step's own scale for legibility. The single largest cut is as-first-reported deduplication, which removes over half the facts and is the difference between a valid anomaly evaluation and a leaking one.</figcaption>
+  </figure>
+</section>
+
+<!-- 04 -->
+<section>
+  <p class="eyebrow">Entry 04 ; the unit</p>
+  <h2>Defining what counts as one observation</h2>
+  <p>With 57,447 distinct tags in the data, something has to be chosen. Three facts shaped that choice.</p>
+  <p><strong>91% of the tag vocabulary is filer-invented</strong> and covers only 7.5% of rows. Those custom tags don't align across firms ; they are private labels. Dropped.</p>
+  <p><strong>Coverage falls off a cliff.</strong> Restricted to balance-sheet instants, not a single tag is reported by 90% of firm-quarters. This kills any dense-vector design and validates the decision to carry an explicit mask channel rather than filling absent values with zero. Which tags a firm reports is itself information about what kind of firm it is.</p>
+  <p><strong>The same concept hides under different tags.</strong> Revenue is the worst case: <code>Revenues</code>, <code>SalesRevenueNet</code>, <code>SalesRevenueGoodsNet</code> and others fragment one economic idea, which is why revenue doesn't appear in the top 20 despite every firm having some. The fix is a hand-written concept layer mapping 100 member tags onto 34 canonical fields, with a documented priority order for firms reporting more than one.</p>
+
+  <div class="note">A finding that cut against expectation: the balance-sheet <em>core</em> is not fragmented. Nine concepts ; total assets, total liabilities, retained earnings and others ; gained exactly zero from consolidation because they are single-tag concepts. Fragmentation lives in the mid-tier: paid-in capital, payables, receivables, debt splits. The catastrophic revenue-style fragmentation is an income-statement phenomenon, and therefore a Phase 2 problem.</div>
+
+  <table>
+    <caption>Cutoff tradeoff ; coverage threshold against usable density</caption>
+    <thead><tr><th>Cutoff</th><th>Concepts</th><th>Firm-qtrs with ≥half</th><th>Mean mask density</th></tr></thead>
+    <tbody>
+      <tr><td>≥40%</td><td>24</td><td>90.4%</td><td>71.5%</td></tr>
+      <tr><td>≥30%</td><td>26</td><td>88.2%</td><td>68.7%</td></tr>
+      <tr class="hi"><td>≥20% &#8592; chosen</td><td>31</td><td>75.3%</td><td>61.7%</td></tr>
+      <tr><td>≥10%</td><td>34</td><td>70.9%</td><td>57.8%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="decided">
+    <span class="lbl">Decision ; 31 concepts at ≥20% coverage</span>
+    40% was rejected because it excluded <code>debt_current</code> by 0.04 percentage points, which would have broken the leverage and distress probes for the sake of a round number nobody chose for a reason. 30% was rejected because it excluded <code>minority_interest</code>, and without that as its own slot a known scope impurity in <code>equity_total</code> becomes permanently unresolvable. 10% excludes nothing at all and so is not a cutoff.
+  </div>
+
+  <p>One more definitional call. Nearly 42% of <code>(cik, ddate)</code> pairs carried three tags or fewer ; mostly a single cash figure lifted out of a cash-flow statement, which reaches back several periods and creates ghost dates where no balance sheet was ever filed.</p>
+  <div class="decided">
+    <span class="lbl">Decision ; an observation IS a balance sheet</span>
+    It must report total assets or total liabilities-and-equity. This is a definition of the unit, not a density threshold. 80.4% of firm-quarters qualify.
+  </div>
+</section>
+
+<!-- 05 -->
+<section>
+  <p class="eyebrow">Entry 05 ; normalization</p>
+  <h2>Removing size, because size is not dynamics</h2>
+  <p>Raw balance-sheet values span up to 18 orders of magnitude. Worse, <strong>81.2% of the variance is between firms rather than within them.</strong> Apple is large this quarter and large next quarter.</p>
+  <p>That is a trap, not a nuisance. A model trained on raw values would predict future state well by encoding "this is a big industrial firm" and predicting it stays big. The prediction task becomes trivial, the representation becomes a size detector, and the order ablation returns a null ; not because order is irrelevant, but because the model never learned anything order could affect. A false negative on the project's central test is the most expensive error available.</p>
+
+  <table>
+    <caption>Four candidate schemes and what each costs</caption>
+    <thead><tr><th>Scheme</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Signed-log + z-score</td><td style="text-align:left">81% of variance stays firm size</td></tr>
+      <tr><td>Common-size (÷ assets)</td><td style="text-align:left">kills the two densest slots; divides by zero on shells</td></tr>
+      <tr><td>Per-firm expanding scale</td><td style="text-align:left">degenerate at step 0; noisy on short firms</td></tr>
+      <tr class="hi"><td>Log-ratio + size slot &#8592; chosen</td><td style="text-align:left">size lives in exactly one dimension</td></tr>
+    </tbody>
+  </table>
+
+  <p>The chosen scheme divides each slot by firm size, then log-transforms, then standardizes ; and keeps <code>log(size)</code> as its own single dimension so size lives in one place instead of smearing across all 31.</p>
+
+  <div class="eq">
+    <span class="eqn">(1)</span>
+    <span class="lbl">Slot transform &#183; ratio, then signed log, then standardize</span>
+    <span class="line"><var>r</var><span class="sb">itj</span> <span class="op">=</span> <var>x</var><span class="sb">itj</span> <span class="op">/</span> <var>&sigma;</var><span class="sb">it</span></span>
+    <span class="line"><var>s</var><span class="sb">itj</span> <span class="op">=</span> <span class="fn">sgn</span>(<var>r</var><span class="sb">itj</span>) <span class="op">&middot;</span> <span class="fn">ln</span>(1 <span class="op">+</span> |<var>r</var><span class="sb">itj</span>|)</span>
+    <span class="line"><var>z</var><span class="sb">itj</span> <span class="op">=</span> (<var>s</var><span class="sb">itj</span> <span class="op">&minus;</span> <var>&mu;</var><span class="sb">j</span>) <span class="op">/</span> <var>&sigma;</var><span class="sb">j</span></span>
+    <div class="where">
+      <b>i</b> firm &#183; <b>t</b> quarter &#183; <b>j</b> slot &#183; <b>&sigma;<span class="sb">it</span></b> the scale reference from (2)<br>
+      <b>&mu;<span class="sb">j</span>, &sigma;<span class="sb">j</span></b> fitted on <b>train firms only</b>, over <b>observed entries only</b>
+    </div>
+  </div>
+
+  <p>The order of those three operations is not cosmetic. Doing signed-log first and subtracting <span class="fn">ln</span>&#8202;<var>A</var> afterwards is a different function, and it is not a ratio at all once <var>x</var> is negative:</p>
+
+  <div class="eq">
+    <span class="eqn">(1a)</span>
+    <span class="lbl">Why ratio must come first</span>
+    <span class="line"><span class="fn">sgn</span>(<var>x</var>)<span class="fn">ln</span>(1<span class="op">+</span>|<var>x</var>|) <span class="op">&minus;</span> <span class="fn">ln</span>&#8202;<var>A</var> &nbsp;<span class="op">&ne;</span>&nbsp; <span class="fn">sgn</span>(<var>x</var>/<var>A</var>)<span class="fn">ln</span>(1<span class="op">+</span>|<var>x</var>/<var>A</var>|) &nbsp;&nbsp;for <var>x</var> <span class="op">&lt;</span> 0</span>
+    <div class="where">
+      Two of the highest-variance slots are majority-negative: <b>aoci</b> 67.8%, <b>retained_earnings</b> 57.6%. The left form silently mangles both.
+    </div>
+  </div>
+
+  <p>Three further corrections were needed to make it work:</p>
+  <ul>
+    <li><strong>Two slots become different features.</strong> After ratioing, total assets is exactly 1.0 and liabilities-and-equity is 1.0 ± 1e-6 by the accounting identity. Z-scoring a slot whose variance is float noise amplifies that noise to unit variance and feeds the encoder garbage. Assets becomes the size dimension; liabilities-and-equity becomes a balance-residual indicator, which is a genuine anomaly feature.</li>
+    <li><strong>A fallback cascade for firms with no size.</strong> 2,393 shell-company steps have zero assets. Falling back to liabilities-and-equity fails there too ; by the identity, if assets are zero, so is that. So: assets, else liabilities-and-equity, else the firm's own expanding-window median, else a global floor, with an indicator flag whenever the scale is inferred rather than observed. No rows dropped, because dropping them would be a completeness filter and those are forbidden.</li>
+    <li><strong>Shares handled separately.</strong> Share count correlates with firm size at just 0.161 ; it reflects split history, not size.</li>
+  </ul>
+
+  <div class="eq">
+    <span class="eqn">(2)</span>
+    <span class="lbl">Scale reference &#183; causal cascade, no rows dropped</span>
+    <span class="line"><var>&sigma;</var><span class="sb">it</span> <span class="op">=</span><span class="cases">
+      <span class="c"><var>A</var><span class="sb">it</span> <span class="op">&nbsp;</span> if <var>A</var><span class="sb">it</span> <span class="op">&gt;</span> 0</span>
+      <span class="c"><var>L</var><span class="sb">it</span> <span class="op">&nbsp;</span> else if <var>L</var><span class="sb">it</span> <span class="op">&gt;</span> 0</span>
+      <span class="c"><span class="fn">median</span>{ <var>&sigma;</var><span class="sb">is</span> <span class="op">:</span> <var>s</var> <span class="op">&lt;</span> <var>t</var> } <span class="op">&nbsp;</span> else if defined</span>
+      <span class="c"><var>&sigma;</var><span class="sb">floor</span> <span class="op">&nbsp;</span> otherwise</span>
+    </span></span>
+    <div class="where">
+      <b>A</b> assets_total &#183; <b>L</b> liabilities_and_equity. The third branch is an <b>expanding window over <var>s</var> &lt; <var>t</var> only</b>, which keeps it causal ; step <var>t</var> never sees its own or any later scale.<br>
+      Falling back to <b>L</b> alone cannot work: by the accounting identity <var>A</var> = <var>L</var>, so <var>A</var> = 0 &#8658; <var>L</var> = 0, and it fails on exactly the 2,393 shell steps it was meant to rescue.<br>
+      An indicator <b>scale_undefined</b> = 1 fires whenever the first two branches miss (1.20% of steps).
+    </div>
+  </div>
+
+  <div class="eq">
+    <span class="eqn">(3)</span>
+    <span class="lbl">The two repurposed slots</span>
+    <span class="line"><span class="fn">size</span><span class="sb">it</span> <span class="op">=</span> <span class="fn">ln</span>&#8202;<var>&sigma;</var><span class="sb">it</span></span>
+    <span class="line"><span class="fn">bal</span><span class="sb">it</span> <span class="op">=</span> <span class="fn">sgn</span>&#8202;<big>(</big>(<var>L</var><span class="sb">it</span> <span class="op">&minus;</span> <var>A</var><span class="sb">it</span>) <span class="op">/</span> <var>&sigma;</var><span class="sb">it</span><big>)</big> &nbsp;if <span class="op">|</span>&middot;<span class="op">|</span> <span class="op">&gt;</span> 10<span class="sp">&minus;6</span>, else 0 &nbsp;&nbsp;<span class="op">&isin;</span> {&minus;1, 0, +1}</span>
+    <div class="where">
+      The residual is <b>99.9% exact zeros</b> with a maximum of 3.8&#215;10<span class="sp">9</span>. As a continuous feature it would dominate first-layer gradients; as a sign it keeps the anomaly event and its direction and nothing else. Left <b>unstandardized</b>.
+    </div>
+  </div>
+
+  <div class="eq">
+    <span class="eqn">(4)</span>
+    <span class="lbl">The diagnostic that gates the whole scheme</span>
+    <span class="line"><span class="fn">between</span>(<var>j</var>) <span class="op">=</span> SS<span class="sb">B</span> <span class="op">/</span> SS<span class="sb">T</span> <span class="op">=</span> <big>&Sigma;</big><span class="sb">i</span> <var>n</var><span class="sb">i</span>(<var>x&#772;</var><span class="sb">i</span> <span class="op">&minus;</span> <var>x&#772;</var>)<span class="sp">2</span> <span class="op">&nbsp;/&nbsp;</span> <big>&Sigma;</big><span class="sb">i</span><big>&Sigma;</big><span class="sb">t</span> (<var>x</var><span class="sb">it</span> <span class="op">&minus;</span> <var>x&#772;</var>)<span class="sp">2</span></span>
+    <div class="where">
+      Fraction of a slot's variance that lives <b>across firms</b> rather than <b>within a firm over time</b>. Firms with &ge;4 observations of that slot; observed entries only.<br>
+      A slot at 90%+ is telling the model how big the company is. A slot near 0% is telling it what the company just did. <b>Only the second kind can carry path dependence.</b>
+    </div>
+  </div>
+
+  <div class="kv">
+    <div><span>Between-firm variance, raw</span><span>81.2%</span></div>
+    <div><span>Between-firm variance, normalized</span><span>50.4%</span></div>
+    <div><span>Threshold for proceeding</span><span>&lt; 60% &#183; passed</span></div>
+  </div>
+  <p class="note">That diagnostic was run <em>before</em> any model code, specifically so that a failure would be cheap to fix rather than surfacing four weeks later as an inexplicable null result.</p>
+</section>
+
+<!-- 06 -->
+<section>
+  <p class="eyebrow">Entry 06 ; architecture</p>
+  <h2>The model</h2>
+  <p>This is a JEPA ; a Joint Embedding Predictive Architecture. The defining property is that it predicts in <em>latent space</em>, not in the space of the data. There is no decoder and no reconstruction. It never tries to output a balance sheet; it tries to predict its own future internal representation.</p>
+  <p>That matters here because reconstructing a balance sheet would force the model to spend capacity on exact dollar amounts, most of which are unpredictable noise. Predicting a latent lets it keep only what is structurally predictable.</p>
+
+  <div class="eq">
+    <span class="eqn">(5)</span>
+    <span class="lbl">The four maps</span>
+    <span class="line"><var>e</var><span class="sb">t</span> <span class="op">=</span> <var>E</var><span class="sb">&theta;</span><big>(</big>[ <var>x</var><span class="sb">t</span> <span class="op">&#8857;</span> <var>m</var><span class="sb">t</span> <span class="op">;</span> <var>m</var><span class="sb">t</span> ]<big>)</big> <span class="op">&isin;</span> &#8477;<span class="sp">128</span></span>
+    <span class="line"><var>h</var><span class="sb">t</span> <span class="op">=</span> <var>C</var><span class="sb">&theta;</span><big>(</big><var>e</var><span class="sb">1:t</span> <span class="op">+</span> <span class="fn">Pos</span>(<var>&tau;</var><span class="sb">1:t</span>)<big>)</big></span>
+    <span class="line"><var>z&#770;</var><span class="sb">t+k</span> <span class="op">=</span> <var>P</var><span class="sb">&theta;</span>(<var>h</var><span class="sb">t</span>, <var>k</var>)<span class="op">,</span> &nbsp; <var>k</var> <span class="op">=</span> <var>&tau;</var><span class="sb">t+k</span> <span class="op">&minus;</span> <var>&tau;</var><span class="sb">t</span> <span class="op">&isin;</span> [1, 8]</span>
+    <span class="line"><var>z</var><span class="sb">u</span> <span class="op">=</span> <span class="fn">sg</span><big>[</big><var>E</var><span class="sb">&xi;</span>(<var>x</var><span class="sb">u</span>, <var>m</var><span class="sb">u</span>)<big>]</big><span class="op">,</span> &nbsp; <var>&xi;</var> <span class="op">&#8592;</span> <var>&lambda;&xi;</var> <span class="op">+</span> (1<span class="op">&minus;</span><var>&lambda;</var>)<var>&theta;</var></span>
+    <div class="where">
+      <b>x</b> 31 values &#183; <b>m</b> 31 mask bits, concatenated to a 62-d input so <b>the mask is a channel, not a filter</b><br>
+      <b>&tau;</b> quarters since the firm's first observation, so a gap shifts position rather than looking contiguous<br>
+      <b>k</b> is measured in <b>quarters via &tau;</b>, not in observation offsets ; the two differ exactly when a firm has a hole<br>
+      <b>sg</b> stop-gradient &#183; <b>&xi;</b> the EMA target encoder, <b>&lambda;</b> annealed 0.996 &#8594; 0.9999, kept in eval mode always
+    </div>
+  </div>
+
+  <div class="eq">
+    <span class="eqn">(6)</span>
+    <span class="lbl">Objective &#183; prediction in latent space, plus anti-collapse</span>
+    <span class="line"><span class="fn">&#8466;</span><span class="sb">pred</span> <span class="op">=</span> <span class="op">(</span>1<span class="op">/</span>|<span class="fn">P</span>|<var>d</var><span class="op">)</span> <big>&Sigma;</big><span class="sb">(t,u)&isin;P</span> <big>&Sigma;</big><span class="sb">j</span> <span class="fn">SmoothL1</span>(<var>z&#770;</var><span class="sb">uj</span> <span class="op">&minus;</span> <var>z</var><span class="sb">uj</span>)</span>
+    <span class="line"><span class="fn">&#8466;</span> <span class="op">=</span> <span class="fn">&#8466;</span><span class="sb">pred</span> <span class="op">+</span> <var>&alpha;</var><span class="op">&middot;</span><var>v</var>(<var>E</var>) <span class="op">+</span> <var>&beta;</var><span class="op">&middot;</span><var>c</var>(<var>E</var>)<span class="op">,</span> &nbsp; <var>&alpha;</var> <span class="op">=</span> 1.0<span class="op">,</span> <var>&beta;</var> <span class="op">=</span> 0.04</span>
+    <div class="where">
+      <b>P</b> the set of valid (context, target) pairs &#183; <b>d</b> = 128. No decoder appears anywhere: both sides of the loss are internal representations.
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 860 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture: encoder, causal context model, predictor, and EMA target encoder">
+      <defs>
+        <marker id="a2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#4E584F"/>
+        </marker>
+      </defs>
+      <g font-family="IBM Plex Mono, monospace" font-size="11.5">
+        <!-- input -->
+        <text x="0" y="16" fill="#4E584F" font-size="11" letter-spacing="1.5">ONE STEP IN</text>
+        <rect x="0" y="28" width="112" height="22" fill="#2B4C7E" opacity=".25" stroke="#2B4C7E"/>
+        <text x="56" y="43" text-anchor="middle" fill="#1A1F1C">31 values</text>
+        <rect x="0" y="54" width="112" height="22" fill="none" stroke="#1A1F1C" stroke-dasharray="3 2"/>
+        <text x="56" y="69" text-anchor="middle" fill="#1A1F1C">31 mask bits</text>
+
+        <line x1="120" y1="52" x2="158" y2="52" stroke="#4E584F" stroke-width="1.3" marker-end="url(#a2)"/>
+
+        <!-- encoder -->
+        <rect x="166" y="26" width="104" height="52" fill="none" stroke="#1A1F1C" stroke-width="1.6"/>
+        <text x="218" y="49" text-anchor="middle" font-weight="600">ENCODER</text>
+        <text x="218" y="65" text-anchor="middle" fill="#4E584F" font-size="10.5">&#8594; 128-dim</text>
+
+        <line x1="278" y1="52" x2="316" y2="52" stroke="#4E584F" stroke-width="1.3" marker-end="url(#a2)"/>
+
+        <!-- context -->
+        <rect x="324" y="18" width="150" height="68" fill="none" stroke="#1A1F1C" stroke-width="1.6"/>
+        <text x="399" y="42" text-anchor="middle" font-weight="600">CAUSAL</text>
+        <text x="399" y="58" text-anchor="middle" font-weight="600">TRANSFORMER</text>
+        <text x="399" y="74" text-anchor="middle" fill="#4E584F" font-size="10.5">4 layers &#183; state h&#8348;</text>
+
+        <line x1="482" y1="52" x2="520" y2="52" stroke="#4E584F" stroke-width="1.3" marker-end="url(#a2)"/>
+
+        <!-- predictor -->
+        <rect x="528" y="26" width="112" height="52" fill="none" stroke="#1A1F1C" stroke-width="1.6"/>
+        <text x="584" y="49" text-anchor="middle" font-weight="600">PREDICTOR</text>
+        <text x="584" y="65" text-anchor="middle" fill="#4E584F" font-size="10.5">h&#8348; + horizon k</text>
+
+        <line x1="648" y1="52" x2="686" y2="52" stroke="#4E584F" stroke-width="1.3" marker-end="url(#a2)"/>
+        <rect x="694" y="26" width="126" height="52" fill="#2B4C7E" opacity=".18"/>
+        <rect x="694" y="26" width="126" height="52" fill="none" stroke="#2B4C7E" stroke-width="1.5"/>
+        <text x="757" y="49" text-anchor="middle" fill="#2B4C7E" font-weight="600">PREDICTED</text>
+        <text x="757" y="65" text-anchor="middle" fill="#2B4C7E">latent at t+k</text>
+
+        <!-- target branch -->
+        <text x="0" y="164" fill="#4E584F" font-size="11" letter-spacing="1.5">ACTUAL STEP AT t+k</text>
+        <rect x="0" y="176" width="112" height="44" fill="none" stroke="#1A1F1C" stroke-dasharray="3 2"/>
+        <text x="56" y="203" text-anchor="middle">values + mask</text>
+        <line x1="120" y1="198" x2="158" y2="198" stroke="#4E584F" stroke-width="1.3" marker-end="url(#a2)"/>
+        <rect x="166" y="172" width="150" height="52" fill="none" stroke="#4E584F" stroke-width="1.6" stroke-dasharray="5 3"/>
+        <text x="241" y="194" text-anchor="middle" fill="#4E584F" font-weight="600">TARGET ENCODER</text>
+        <text x="241" y="210" text-anchor="middle" fill="#4E584F" font-size="10.5">EMA copy &#183; no gradient</text>
+
+        <line x1="324" y1="198" x2="686" y2="198" stroke="#4E584F" stroke-width="1.3" marker-end="url(#a2)"/>
+        <rect x="694" y="172" width="126" height="52" fill="none" stroke="#1A1F1C" stroke-width="1.5"/>
+        <text x="757" y="194" text-anchor="middle" font-weight="600">TRUE</text>
+        <text x="757" y="210" text-anchor="middle">latent at t+k</text>
+
+        <line x1="757" y1="82" x2="757" y2="168" stroke="#A3261E" stroke-width="1.6" stroke-dasharray="3 3"/>
+        <text x="768" y="130" fill="#A3261E" font-weight="600">loss</text>
+
+        <line x1="0" y1="256" x2="860" y2="256" stroke="#B9C5B1" stroke-width="1"/>
+        <text x="0" y="278" fill="#4E584F">No decoder. No reconstruction. The loss is entirely between two internal representations.</text>
+        <text x="0" y="296" fill="#4E584F">749,952 parameters &#183; latent width 128 &#183; horizons up to 8 quarters &#183; sequences 1 to 36 steps</text>
+      </g>
+    </svg>
+    <figcaption><b>Architecture.</b> The target encoder is a slowly-updated copy of the online encoder, which is what stops the model from cheating by making all latents identical. A time index is fed to the transformer so a gap in the trajectory shifts position rather than looking like a contiguous step.</figcaption>
+  </figure>
+</section>
+
+<!-- 07 -->
+<section>
+  <p class="eyebrow">Entry 07 ; <b>failure, and what it taught</b></p>
+  <h2>Run 1 collapsed onto the size axis</h2>
+  <p>The first training run looked excellent. Loss fell 17× in 500 steps. It was completely broken.</p>
+  <p>The instrumentation that caught it was Participation Ratio divided by latent dimension ; a measure of how many dimensions are actually carrying variance. It had been logged from step zero specifically because this failure mode is invisible in the loss curve.</p>
+
+  <div class="eq">
+    <span class="eqn">(7)</span>
+    <span class="lbl">Participation ratio &#183; effective dimensionality</span>
+    <span class="line"><span class="fn">PR</span>(<var>Z</var>) <span class="op">=</span> <big>(</big><big>&Sigma;</big><span class="sb">i</span> <var>&lambda;</var><span class="sb">i</span><big>)</big><span class="sp">2</span> <span class="op">&nbsp;/&nbsp;</span> <big>&Sigma;</big><span class="sb">i</span> <var>&lambda;</var><span class="sb">i</span><span class="sp">2</span><span class="op">,</span> &nbsp; <var>&lambda;</var> <span class="op">=</span> <span class="fn">eig</span><big>(</big><span class="fn">Cov</span>(<var>Z</var>)<big>)</big></span>
+    <div class="where">
+      <b>PR</b> <span class="op">=</span> <var>d</var> when every eigenvalue is equal ; variance spread evenly over all directions.<br>
+      <b>PR</b> <span class="op">&#8594;</span> 1 when one eigenvalue dominates ; all variance on a single axis.<br>
+      Reported as <b>PR&#8202;/&#8202;d</b> so it reads as a fraction of the latent actually in use. <b>There is no target value</b>; the trend is the signal, and a sustained decline while loss improves is the stop-and-diagnose trigger.
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chart comparing effective dimensionality across run 1 and run 2">
+      <g font-family="IBM Plex Mono, monospace" font-size="11">
+        <!-- axes -->
+        <line x1="60" y1="30" x2="60" y2="230" stroke="#1A1F1C" stroke-width="1.2"/>
+        <line x1="60" y1="230" x2="800" y2="230" stroke="#1A1F1C" stroke-width="1.2"/>
+        <text x="60" y="255" fill="#4E584F">0</text>
+        <text x="400" y="255" fill="#4E584F" text-anchor="middle">training steps &#8594;</text>
+        <text x="795" y="255" fill="#4E584F" text-anchor="end">3,840</text>
+
+        <!-- y ticks -->
+        <text x="52" y="234" fill="#4E584F" text-anchor="end">0</text>
+        <line x1="56" y1="230" x2="60" y2="230" stroke="#4E584F"/>
+        <text x="52" y="154" fill="#4E584F" text-anchor="end">0.12</text>
+        <line x1="56" y1="150" x2="60" y2="150" stroke="#4E584F"/>
+        <text x="52" y="74" fill="#4E584F" text-anchor="end">0.24</text>
+        <line x1="56" y1="70" x2="60" y2="70" stroke="#4E584F"/>
+        <text x="16" y="30" fill="#4E584F" font-size="10" letter-spacing="1">PR / d</text>
+
+        <!-- run2 curve: rises to .2285 -->
+        <polyline fill="none" stroke="#2B4C7E" stroke-width="2.2"
+          points="60,205 78,207 96,215 120,212 160,158 200,122 250,102 300,90 360,82 420,77 480,74 540,72 620,70 700,69 780,69"/>
+        <circle cx="780" cy="69" r="3.5" fill="#2B4C7E"/>
+        <text x="770" y="58" fill="#2B4C7E" text-anchor="end" font-weight="600">run 2 &#183; 0.229 &#8594; healthy</text>
+
+        <!-- run1 curve: collapses, only 500 steps -->
+        <polyline fill="none" stroke="#A3261E" stroke-width="2.2"
+          points="60,205 72,199 88,212 105,222 122,223 140,222 158,222 160,222"/>
+        <circle cx="160" cy="222" r="3.5" fill="#A3261E"/>
+        <text x="172" y="222" fill="#A3261E" font-weight="600">run 1 &#183; 0.010 &#183; stopped</text>
+        <text x="172" y="238" fill="#A3261E" font-size="10.5">1.3 of 128 dimensions alive</text>
+
+        <!-- annotation -->
+        <line x1="160" y1="222" x2="160" y2="120" stroke="#A3261E" stroke-width=".9" stroke-dasharray="2 3"/>
+        <text x="168" y="115" fill="#A3261E" font-size="10.5">meanwhile loss fell 17&#215;</text>
+
+        <line x1="0" y1="272" x2="860" y2="272" stroke="#B9C5B1" stroke-width="1"/>
+        <text x="0" y="292" fill="#4E584F">A falling loss with a falling PR/d is the collapse signature. It looks like success until every probe returns chance.</text>
+      </g>
+    </svg>
+    <figcaption><b>The signature.</b> Run 1 in red, halted at step 500 under the stop-and-diagnose rule. Run 2 in blue: a dip, then monotone rise, then a plateau ; which is the shape a healthy representation makes.</figcaption>
+  </figure>
+
+  <h3>The diagnosis refuted the obvious hypothesis</h3>
+  <p>The expected failure was constant collapse ; all latents converging to a single point. The measurements said otherwise:</p>
+
+  <table>
+    <caption>Run 1 latent geometry, step 0 against step 400</caption>
+    <thead><tr><th>Measure</th><th>Step 0</th><th>Step 400</th></tr></thead>
+    <tbody>
+      <tr><td>Total latent variance</td><td>0.234</td><td class="neg">306.6</td></tr>
+      <tr><td>Top-1 eigenvalue share</td><td>42.99%</td><td class="neg">77.83%</td></tr>
+      <tr><td>Top-5 eigenvalue share</td><td>70.43%</td><td class="neg">99.76%</td></tr>
+      <tr><td>Effective dimensions (of 128)</td><td>4.7</td><td class="neg">1.3</td></tr>
+    </tbody>
+  </table>
+
+  <p>Variance <em>grew</em>, by more than a thousand times. The latents were not one point ; they were spread along one <em>line</em>. This is anisotropic collapse, and the mechanism is specific to this data:</p>
+
+  <div class="pull">The most predictable thing about a firm's next state is how big the firm is. Size barely moves within a firm. So the model learned to encode the size axis and discarded everything else.</div>
+
+  <p>Note that the normalization scheme had already been designed to fight exactly this, and the model found its way there anyway through a different route. Target LayerNorm ; the standard I-JEPA anti-collapse device ; cannot help, and the reason is visible in the definition:</p>
+
+  <div class="eq">
+    <span class="eqn">(8)</span>
+    <span class="lbl">Why per-sample normalization cannot stop this</span>
+    <span class="line"><span class="fn">LN</span>(<var>z</var>)<span class="sb">j</span> <span class="op">=</span> (<var>z</var><span class="sb">j</span> <span class="op">&minus;</span> <var>&mu;</var>(<var>z</var>)) <span class="op">/</span> <var>&sigma;</var>(<var>z</var>)<span class="op">,</span> &nbsp; <var>&mu;</var>, <var>&sigma;</var> taken <b>across <var>j</var></b>, per sample</span>
+    <div class="where">
+      The statistics are computed <b>within one sample, across features</b>. Every sample is normalized independently, so a direction shared by <em>all</em> samples survives untouched. LayerNorm constrains each latent to a sphere; it says nothing about <b>where on that sphere the population sits</b>. Measured: mean pairwise cosine of layer-normed targets was <b>0.58</b>, not 1.0 ; not one point, one axis.
+    </div>
+  </div>
+  <div class="decided">
+    <span class="lbl">Fix ; variance regularization, and exactly one normalization active</span>
+    Target LayerNorm off. A VICReg-style variance hinge that forces every dimension to carry at least unit standard deviation, plus a covariance penalty that pushes dimensions to decorrelate. Only one normalization mechanism runs at a time, asserted in code, because a known failure mode is these two fighting each other.
+  </div>
+
+  <div class="eq">
+    <span class="eqn">(9)</span>
+    <span class="lbl">The two regularizers, computed <em>across the batch</em></span>
+    <span class="line"><var>v</var>(<var>E</var>) <span class="op">=</span> (1<span class="op">/</span><var>d</var>) <big>&Sigma;</big><span class="sb">j</span> <span class="fn">max</span><big>(</big>0<span class="op">,</span> <var>&gamma;</var> <span class="op">&minus;</span> <span class="op">&radic;</span><span style="text-decoration:overline">&#8202;<span class="fn">Var</span>(<var>E</var><span class="sb">&middot;j</span>) <span class="op">+</span> <var>&epsilon;</var>&#8202;</span><big>)</big><span class="op">,</span> &nbsp; <var>&gamma;</var> <span class="op">=</span> 1</span>
+    <span class="line"><var>c</var>(<var>E</var>) <span class="op">=</span> (1<span class="op">/</span><var>d</var>) <big>&Sigma;</big><span class="sb">i&ne;j</span> <big>[</big><span class="fn">Cov</span>(<var>E</var>)<big>]</big><span class="sb">ij</span><span class="sp">2</span></span>
+    <div class="where">
+      This is the whole fix. Unlike (8), <b>Var</b> and <b>Cov</b> are taken <b>down the batch for each dimension</b>, not across features within a sample ; which is precisely what makes them able to see, and penalize, a shared dominant axis.<br>
+      <b>v</b> forces every one of the 128 dimensions to carry spread. <b>c</b> stops those dimensions from being copies of one another. Result: effective dimensions <b>1.3 &#8594; ~30</b>.
+    </div>
+  </div>
+  <p>Result: effective dimensions went from 1.3 to roughly 30, and stayed there. This finding ; that JEPA applied to data with a dominant static axis collapses onto that axis, and that per-sample normalization cannot prevent it ; generalizes well beyond financial data, and is arguably the most transferable thing the project produced.</p>
+</section>
+
+<!-- 08 -->
+<section>
+  <p class="eyebrow">Entry 08 ; <b>a false negative</b></p>
+  <h2>The result that was wrong, and how it got caught</h2>
+  <p>With training stable, the decisive experiment ran: train one model on correctly-ordered histories, one on shuffled histories, compare. The first run came back negative. Shuffling didn't hurt ; on the regime-stable control window, shuffling <em>helped</em> by 10.91%.</p>
+  <p>The tell was not in the code. It was in the sign.</p>
+  <div class="broke">
+    <span class="lbl">The diagnostic</span>
+    "Order is irrelevant" predicts a gap near <em>zero</em>. It does not predict the shuffled model <em>beating</em> the ordered one by 11%. A null that overshoots into the wrong sign is a broken comparison, not a strong finding.
+  </div>
+
+  <p>Two bugs were stacked underneath it.</p>
+  <p><strong>The evaluation was unfair.</strong> The shuffled arm was being scored on shuffled validation pairs, so the two arms were not doing the same task. In an ordered trajectory, predicting <code>t+k</code> means extrapolating drift, and the target moves further away as <code>k</code> grows. Shuffle the sequence and targets become near-exchangeable draws clustered around the firm's own mean. Shuffling makes the prediction problem <em>intrinsically easier</em>, entirely independently of whether order carries information.</p>
+  <p><strong>The inputs were damaged.</strong> An earlier decision to clip extreme values at ±10 after standardization sounded harmless ; 70 entries out of 4.1 million. In practice it destroyed 95.5% of one slot's variance and 15–67% across a dozen others, including <code>aoci</code>, one of only two slots carrying most of its variance <em>within</em> firms. Within-firm variance is precisely where path dependence lives. The clip had attenuated the signal the experiment existed to detect.</p>
+  <div class="decided">
+    <span class="lbl">Both fixed</span>
+    Both arms now evaluate on identical <em>ordered</em> validation pairs, with an assertion enforcing it. Clipping replaced by winsorizing in raw space at per-slot quantiles, then a single standardization pass, which converges where the previous approach did not.
+  </div>
+</section>
+
+<!-- 09 -->
+<section>
+  <p class="eyebrow">Entry 09 ; the result</p>
+  <h2>Order matters, and the gradient proves it</h2>
+  <p>On a fair test, the result reverses and is substantial.</p>
+
+  <table>
+    <caption>Headline ; firms with ≥16 balance-sheet observations</caption>
+    <thead><tr><th>Window</th><th>Ordered</th><th>Shuffled</th><th>Penalty</th><th>PR/d ord</th><th>PR/d shuf</th></tr></thead>
+    <tbody>
+      <tr><td>Full 2012–2020</td><td>0.07363</td><td>0.08939</td><td class="pos">+21.40%</td><td>0.2631</td><td>0.2580</td></tr>
+      <tr><td>Regime-stable control</td><td>0.06833</td><td>0.07623</td><td class="pos">+11.57%</td><td>0.2692</td><td>0.2688</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Effective dimensionality is within 0.005 between arms, so neither model collapsed. That check matters: a collapsed shuffled arm would have manufactured a large gap that meant nothing.</p>
+
+  <div class="eq">
+    <span class="eqn">(10)</span>
+    <span class="lbl">The ablation statistic</span>
+    <span class="line"><span class="fn">&#916;</span><span class="sb">b</span> <span class="op">=</span> <big>(</big><span class="fn">&#8466;</span><span class="sb">shuf,b</span> <span class="op">&minus;</span> <span class="fn">&#8466;</span><span class="sb">ord,b</span><big>)</big> <span class="op">/</span> <span class="fn">&#8466;</span><span class="sb">ord,b</span><span class="op">,</span> &nbsp; <span class="fn">&#8466;</span><span class="sb">b</span> <span class="op">=</span> <big>&Sigma;</big><span class="sb">(t,u)&isin;P<span class="sb">b</span></span> <var>&#8467;</var><span class="sb">tu</span> <span class="op">/</span> |<span class="fn">P</span><span class="sb">b</span>|</span>
+    <div class="where">
+      Pair-weighted within each length bucket <b>b</b>. Both arms train on identical config, seed and step budget; only the input order differs.<br>
+      <b>Both arms are scored on identical ORDERED validation pairs.</b> Scoring the shuffled arm on shuffled pairs makes its task intrinsically easier ; targets become near-exchangeable draws around the firm mean rather than a drift to extrapolate ; and that single defect produced the false negative in Entry 08.
+    </div>
+  </div>
+
+  <p>But the headline number is not the evidence. <strong>The gradient across trajectory lengths is the evidence.</strong></p>
+
+  <figure>
+    <svg viewBox="0 0 860 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bar chart of shuffling penalty by trajectory length bucket, on two windows">
+      <g font-family="IBM Plex Mono, monospace" font-size="11.5">
+        <text x="0" y="14" fill="#4E584F" font-size="11" letter-spacing="1.5">PENALTY FOR SHUFFLING, BY TRAJECTORY LENGTH</text>
+
+        <!-- zero line -->
+        <line x1="120" y1="250" x2="820" y2="250" stroke="#1A1F1C" stroke-width="1.3"/>
+        <text x="112" y="254" text-anchor="end" fill="#4E584F">0%</text>
+        <line x1="120" y1="180" x2="820" y2="180" stroke="#D2DACA"/>
+        <text x="112" y="184" text-anchor="end" fill="#4E584F">10%</text>
+        <line x1="120" y1="110" x2="820" y2="110" stroke="#D2DACA"/>
+        <text x="112" y="114" text-anchor="end" fill="#4E584F">20%</text>
+        <line x1="120" y1="40" x2="820" y2="40" stroke="#D2DACA"/>
+        <text x="112" y="44" text-anchor="end" fill="#4E584F">30%</text>
+
+        <!-- bars: full window (blue) and clean (outlined) -->
+        <!-- bucket 2-3: -0.54 / -0.76 -->
+        <rect x="140" y="250" width="34" height="4" fill="#A3261E"/>
+        <rect x="178" y="250" width="34" height="5" fill="none" stroke="#A3261E" stroke-width="1.4"/>
+        <text x="176" y="278" text-anchor="middle" fill="#4E584F">2&#8211;3</text>
+        <text x="176" y="294" text-anchor="middle" fill="#A3261E" font-size="10">&#8722;0.5%</text>
+
+        <!-- 4-7: +1.06 / +2.74 -->
+        <rect x="252" y="243" width="34" height="7" fill="#2B4C7E"/>
+        <rect x="290" y="231" width="34" height="19" fill="none" stroke="#2B4C7E" stroke-width="1.4"/>
+        <text x="288" y="278" text-anchor="middle" fill="#4E584F">4&#8211;7</text>
+        <text x="288" y="294" text-anchor="middle" fill="#4E584F" font-size="10">+1.1%</text>
+
+        <!-- 8-15: +7.58 / +10.00 -->
+        <rect x="364" y="197" width="34" height="53" fill="#2B4C7E"/>
+        <rect x="402" y="180" width="34" height="70" fill="none" stroke="#2B4C7E" stroke-width="1.4"/>
+        <text x="400" y="278" text-anchor="middle" fill="#4E584F">8&#8211;15</text>
+        <text x="400" y="294" text-anchor="middle" fill="#4E584F" font-size="10">+7.6%</text>
+
+        <!-- 16-23: +11.90 / +11.57 -->
+        <rect x="476" y="167" width="34" height="83" fill="#2B4C7E"/>
+        <rect x="514" y="169" width="34" height="81" fill="none" stroke="#2B4C7E" stroke-width="1.4"/>
+        <text x="512" y="278" text-anchor="middle" fill="#4E584F">16&#8211;23</text>
+        <text x="512" y="294" text-anchor="middle" fill="#4E584F" font-size="10">+11.9%</text>
+
+        <!-- 24-31: +20.64, clean empty -->
+        <rect x="588" y="106" width="34" height="144" fill="#2B4C7E"/>
+        <text x="626" y="246" fill="#B9C5B1" font-size="10">n/a</text>
+        <text x="612" y="278" text-anchor="middle" fill="#4E584F">24&#8211;31</text>
+        <text x="612" y="294" text-anchor="middle" fill="#4E584F" font-size="10">+20.6%</text>
+
+        <!-- 32-36: +25.65 -->
+        <rect x="700" y="70" width="34" height="180" fill="#2B4C7E"/>
+        <text x="738" y="246" fill="#B9C5B1" font-size="10">n/a</text>
+        <text x="724" y="278" text-anchor="middle" fill="#4E584F">32&#8211;36</text>
+        <text x="724" y="294" text-anchor="middle" fill="#4E584F" font-size="10">+25.7%</text>
+
+        <!-- legend -->
+        <rect x="120" y="316" width="16" height="10" fill="#2B4C7E"/>
+        <text x="144" y="325" fill="#4E584F" font-size="11">full window 2012&#8211;2020</text>
+        <rect x="330" y="316" width="16" height="10" fill="none" stroke="#2B4C7E" stroke-width="1.4"/>
+        <text x="354" y="325" fill="#4E584F" font-size="11">regime-stable control 2013&#8211;2016 (max 16 steps)</text>
+
+        <text x="820" y="30" text-anchor="end" fill="#4E584F" font-size="10.5">trajectory length, quarters &#8594;</text>
+      </g>
+    </svg>
+    <figcaption><b>Why this is convincing.</b> Shuffling a 3-step trajectory is nearly a no-op, and it measures as one ; indistinguishable from zero. The penalty then rises with every length bucket, monotonically, on <b>two disjoint windows independently</b>. A confound would have to scale smoothly with trajectory length in both. For contrast, the earlier broken test produced a gradient that was non-monotone and flipped sign between windows.</figcaption>
+  </figure>
+
+  <h3>Caveats recorded alongside the result</h3>
+  <ul>
+    <li>The regime-stable control window is only 16 quarters wide, so the two longest buckets are empty by construction. The control confirms the effect at 16–23 but cannot reach where the largest gaps live. No 32-quarter regime-stable window exists in this data.</li>
+    <li>11 of 30 slots still retain under 50% of their raw variance after winsorizing. This attenuates signal rather than manufacturing it, so the measured gap is conservative ; but the inputs are degraded.</li>
+    <li>One slot, <code>common_shares_outstanding</code>, is dead: the ratio is exactly 1.0 through the 99.5th percentile. No threshold rescues it.</li>
+  </ul>
+
+  <h3>A second finding, from a side experiment</h3>
+  <div class="kv">
+    <div><span>Latent width 128</span><span>33.7 effective dims &#183; val 0.076</span></div>
+    <div><span>Latent width 64</span><span>28.8 effective dims &#183; val 0.123 (+62%)</span></div>
+  </div>
+  <p>Effective dimensionality lands at 29–34 regardless of latent width, but halving the width costs 62% in prediction error. So the extra width is not padding ; it is doing something other than adding dimensions, and roughly 30 dimensions appears to be the intrinsic dimensionality of firm balance-sheet state under this objective.</p>
+</section>
+
+<!-- 10 -->
+<section>
+  <p class="eyebrow">Entry 10 ; <b>the probes failed, and the probes were wrong</b></p>
+  <h2>Testing whether the latent means anything</h2>
+  <p>Low prediction error only proves the model is self-consistent. It says nothing about whether those 128 numbers contain anything a person would recognise. A <em>probe</em> answers that: freeze the encoder, run the data through, then fit the simplest possible model ; logistic regression ; from latent to some property whose answer is already known.</p>
+  <p>The probe has to be linear and tiny. Allow a deep network on top and it could compute the answer itself, teaching you nothing about the latent. Keeping it linear means a good score can only come from the encoder having already arranged that information readably. Two baselines make the score interpretable: gradient boosting on the raw 31 slots asks whether the encoder was needed at all, and a <strong>mask-only</strong> run ; values zeroed, only the 31 present/absent bits ; asks whether the probe is reading which forms the firm filed rather than what the numbers say.</p>
+
+  <table>
+    <caption>Four probes, full label set</caption>
+    <thead><tr><th>Probe</th><th>Encoder</th><th>Mask-only</th><th>XGBoost</th><th>Mask-only control</th></tr></thead>
+    <tbody>
+      <tr><td>ΔROA direction</td><td>0.536</td><td>0.517</td><td class="pos">0.545</td><td>passes</td></tr>
+      <tr><td>Sector</td><td>0.640</td><td>0.598</td><td class="pos">0.680</td><td class="neg">FAILS &#183; 84.7%</td></tr>
+      <tr><td>Leverage regime</td><td>0.933</td><td>0.524</td><td class="pos">0.994</td><td>passes</td></tr>
+      <tr><td>Distress</td><td>0.670</td><td>0.644</td><td class="pos">0.687</td><td class="neg">FAILS &#183; 84.9%</td></tr>
+    </tbody>
+  </table>
+
+  <p>XGBoost wins all four. Two of the four fail the mask-only control, meaning they are largely reading taxonomy rather than state ; the distress probe most starkly, where a firm winding down simply files fewer tags, so "which fields are missing" beats anything about the values.</p>
+  <p>And the label-efficiency claim, which was the closest thing in the project to a direct deployment argument, does not hold. At 50 labels the frozen encoder recovers <strong>17–30% of its own full-label performance</strong>, and never beats XGBoost at equal label count.</p>
+
+  <div class="broke">
+    <span class="lbl">But the suite was mis-specified, and that is the more important finding</span>
+    Every label used ; sector, leverage ratio, ΔROA sign, distress-by-filing-cessation ; was computable from the <em>current step alone</em>. So the probes asked whether a 128-dimensional latent is a lossless compression of a 31-slot vector. It is not, and was never trained to be. The leverage probe is the reductio: its label is literally <code>(debt_current + debt_noncurrent) / assets_total</code>, three input slots in closed form. A tree reading the raw vector reconstructs that by arithmetic. <strong>No probe in the suite tested history</strong>, which is the encoder's entire claim. These results are weak evidence about representation quality in either direction.
+  </div>
+</section>
+
+<!-- 11 -->
+<section>
+  <p class="eyebrow">Entry 11 ; <b>surprise as a detector</b></p>
+  <h2>Does the model notice when a firm departs from its own path?</h2>
+  <p>This is the use case from Entry 01, tested. Compute per-quarter prediction error for every firm in the held-out set. Align each event firm's error series on the quarter something happened. Compare against matched controls ; same sector, same size band. If surprise rises before or at the event, the mechanism works.</p>
+  <p>One methodological decision shaped everything: only firms present at <em>all nine offsets</em> are used. The raw event count grew from 186 to 354 across offsets, and a rise measured over a changing firm set is composition, not signal. That balanced panel is what stopped a spurious ramp from being reported.</p>
+
+  <div class="eq">
+    <span class="eqn">(11)</span>
+    <span class="lbl">Surprise &#183; three scorings and the effect size</span>
+    <span class="line"><var>s</var><span class="sb">it</span> <span class="op">=</span> (1<span class="op">/</span><var>d</var>) <big>&Sigma;</big><span class="sb">j</span> <span class="fn">SmoothL1</span><big>(</big><var>z&#770;</var><span class="sb">itj</span> <span class="op">&minus;</span> <var>z</var><span class="sb">itj</span><big>)</big></span>
+    <span class="line ind">causal <var>z</var><span class="op">:</span> &nbsp; <big>(</big><var>s</var><span class="sb">it</span> <span class="op">&minus;</span> <span class="fn">med</span><span class="sb">s&lt;t</span><big>)</big> <span class="op">/</span> <big>(</big>1.4826 <span class="op">&middot;</span> <span class="fn">MAD</span><span class="sb">s&lt;t</span><big>)</big></span>
+    <span class="line ind">sector-relative<span class="op">:</span> &nbsp; <big>(</big><var>s</var><span class="sb">it</span> <span class="op">&minus;</span> <var>&mu;</var><span class="sb">g(i)</span><big>)</big> <span class="op">/</span> <var>&sigma;</var><span class="sb">g(i)</span><span class="op">,</span> &nbsp; <var>g</var>(<var>i</var>) <span class="op">=</span> (sector, size band)</span>
+    <span class="line"><var>d</var><span class="sb">Cohen</span> <span class="op">=</span> <big>(</big><var>x&#772;</var><span class="sb">event</span> <span class="op">&minus;</span> <var>x&#772;</var><span class="sb">control</span><big>)</big> <span class="op">/</span> <span class="op">&radic;</span><span style="text-decoration:overline">&#8202;(<var>&sigma;</var><span class="sb">e</span><span class="sp">2</span> <span class="op">+</span> <var>&sigma;</var><span class="sb">c</span><span class="sp">2</span>)<span class="op">/</span>2&#8202;</span></span>
+    <div class="where">
+      One-step-ahead error at the true quarter gap <b>k = &tau;<span class="sb">t</span> &minus; &tau;<span class="sb">t&minus;1</span></b>, identical to the training objective ; a rise means the firm became less predictable <b>from its own past</b>.<br>
+      <b>d</b> on the first line is the latent width (128); <b>d<span class="sb">Cohen</span></b> on the last is the effect size. Same letter, different quantities.<br>
+      The causal <b>z</b> uses an expanding window over <b>s &lt; t</b> only (&ge;4 priors), so nothing from the event period leaks backwards. <b>Sector-relative is the default</b>: it halved finance in the top-50 (27 &#8594; 12) and raised the effect.
+    </div>
+  </div>
+
+  <h3>Firm exit ; no signal at any horizon</h3>
+  <div class="kv">
+    <div><span>Effect size at t=0, sector-relative</span><span>d = &#8722;0.00</span></div>
+    <div><span>Largest pre-event offset</span><span>d = 0.17 at t&#8722;3, no neighbours</span></div>
+    <div><span>Top-50 enrichment, global scoring</span><span>26% vs 27% base rate</span></div>
+  </div>
+  <p>The model does not see firms coming that are about to stop filing. Flat at every horizon from eight quarters out. Stated as a negative: <strong>latent surprise carries no usable early warning of firm exit.</strong></p>
+
+  <h3>Restatements ; a spike at arrival, and then it shrank</h3>
+  <p>The first version looked strong: a flat run-up through t−1 and a jump to d = 0.44 at the restated quarter. Not anticipation, but a real unsupervised detector firing on the anomalous filing as it lands.</p>
+  <p>Then the event set itself was audited, and 41.9% of it turned out not to be restatements at all. The proxy's own algebra says why:</p>
+
+  <div class="eq">
+    <span class="eqn">(12)</span>
+    <span class="lbl">The divergence proxy, and the artifact it hides</span>
+    <span class="line"><var>&rho;</var><span class="sb">it</span> <span class="op">=</span> <span class="fn">max</span><span class="sb">tag</span> &nbsp;<span class="op">|</span><var>v</var><span class="sb">last</span> <span class="op">&minus;</span> <var>v</var><span class="sb">first</span><span class="op">|</span> <span class="op">/</span> <span class="fn">max</span><big>(</big><span class="op">|</span><var>v</var><span class="sb">first</span><span class="op">|</span><span class="op">,</span> <span class="op">|</span><var>v</var><span class="sb">last</span><span class="op">|</span><big>)</big></span>
+    <span class="line ind"><var>v</var><span class="sb">first</span> <span class="op">=</span> 0<span class="op">,</span> <var>v</var><span class="sb">last</span> <span class="op">&ne;</span> 0 &nbsp;<span class="op">&#8658;</span>&nbsp; <var>&rho;</var> <span class="op">=</span> 1 &nbsp;<b>exactly</b></span>
+    <span class="line ind"><span class="fn">sgn</span>&#8202;<var>v</var><span class="sb">first</span> <span class="op">&ne;</span> <span class="fn">sgn</span>&#8202;<var>v</var><span class="sb">last</span> &nbsp;<span class="op">&#8658;</span>&nbsp; <var>&rho;</var> <span class="op">=</span> (<span class="op">|</span><var>a</var><span class="op">|</span><span class="op">+</span><span class="op">|</span><var>b</var><span class="op">|</span>)<span class="op">/</span><span class="fn">max</span>(<span class="op">|</span><var>a</var><span class="op">|</span><span class="op">,</span><span class="op">|</span><var>b</var><span class="op">|</span>) <span class="op">&isin;</span> (1, 2]</span>
+    <div class="where">
+      So <b>&rho; = 1 is not a 100% move in a reported number</b> ; it is a zero crossing. And <b>&rho; &gt; 1 is only reachable by a sign flip.</b> The naive event set's <b>p75 sits at exactly 1.000</b> and its p90 at 1.552, which is the artifact signature stated in one line.<br>
+      Selecting each firm's <b>maximum</b>-divergence quarter concentrates precisely this tail, which is why the firm-level artifact rate (<b>41.9%</b>) far exceeds the tag-level rate (<b>13.1%</b>).<br>
+      <b>Plausible</b> = same-sign <b>and</b> ratio &le; 10&#215;, which drops both failure modes and the merger-holdco stubs.
+    </div>
+  </div>
+
+  <div class="broke">
+    <span class="lbl">What was actually in the event set</span>
+    The dominant artifact is the <strong>merger holdco registration stub</strong>: a newly formed entity files a nominal or zero balance sheet, and a later filing carries the real consolidated figures. Ares Management shows total assets of $1,000 first-reported against $23.7 billion later. Baker Hughes GE, Walgreens Boots Alliance, Linde, TechnipFMC, Broadcom Cayman ; all new holdcos formed by merger, nothing restated. Add sign flips (25.4% of selected events), zero-crossings, and scope changes above 10×, and 168 of 401 firms were implausible as restatements. Because events are selected by taking each firm's <em>maximum</em>-divergence quarter, the selection actively concentrates the artifact tail: the firm-level artifact rate of 41.9% far exceeds the tag-level rate of 13.1%.
+  </div>
+
+  <table>
+    <caption>Restatement detection at t=0, before and after cleaning the event set</caption>
+    <thead><tr><th>Event set</th><th>n (balanced)</th><th>d at t=0</th><th>Excess rise</th></tr></thead>
+    <tbody>
+      <tr><td>Naive (401 firms)</td><td>166 / 687</td><td>0.44</td><td>+0.519</td></tr>
+      <tr><td>Plausible (307 firms)</td><td>137 / 525</td><td class="neg">0.24</td><td class="neg">+0.155</td></tr>
+    </tbody>
+  </table>
+
+  <p>Effect size falls 45%, excess rise falls 70%. Worse, the <em>shape</em> claim weakens more than the number does. On the naive set six of eight pre-event offsets sat below |d| = 0.08 against 0.44 at t=0 ; a clean separation. On the cleaned set the pre-event band runs 0.13 to 0.16 against 0.24 at t=0. That is roughly 1.5× the noise floor, not a locked spike.</p>
+
+  <div class="decided">
+    <span class="lbl">The honest statement</span>
+    Direction survives, magnitude does not. Restatement detection at arrival is <strong>weak and marginal</strong>, and there is no early warning at any horizon for anything. Any phrasing that implies otherwise is overstating the evidence.
+  </div>
+
+  <h3>What the ranking was actually detecting</h3>
+  <p>Reading the top-50 highest-surprise firm-quarters under sector-relative scoring, a pattern appears that nobody was looking for. Momentive Performance Materials and MPM Holdings at ranks 1 and 2 ; same corporate group, same quarter, both subsequently gone. TechnipFMC at rank 3, the merger quarter. Then Shopify 2015, Uber 2019, nCino 2020. Spinoffs: VICI, Parkway. SPACs: Allegro, Double Eagle, Hydra. WestRock, Eastman Kodak, General Steel.</p>
+  <p>Most of these carry no restatement signal at all. They are <strong>IPOs, mergers, spinoffs and SPACs</strong> ; genuine discontinuities in firm state, which a latent transition model arguably <em>should</em> flag. The balance sheet of a company before and after an IPO is a different object.</p>
+  <div class="note">This is an observation from reading fifty names, not a measurement. It is exactly how spurious findings are born. It is testable ; S-1 effective dates, 8-K Item 2.01 completions, Form 10 spinoffs ; with the same timeline machinery already built, and it remains untested. It is listed here as a hypothesis the data suggested, not a result.</div>
+</section>
+
+<!-- 12 -->
+<section>
+  <p class="eyebrow">Entry 12 ; the ledger</p>
+  <h2>What this project has, and what it does not</h2>
+  <p>Stated plainly, because a writeup that blurs this line is worth nothing.</p>
+
+  <h3>Holds up</h3>
+  <ul>
+    <li><strong>Path dependence in firm financial state.</strong> Ordered training beats shuffled by 21.4% on the full window and 11.6% on a regime-stable control, with a monotone length gradient across six buckets on two disjoint windows and the shortest bucket at zero as a sanity check. Both arms healthy, neither collapsed. This is the finding.</li>
+    <li><strong>The anisotropic collapse mechanism.</strong> JEPA on data with a dominant static axis collapses onto that axis while total variance <em>grows</em>, and per-sample normalisation cannot prevent it. Diagnosed with measurements, fixed with variance regularisation. This transfers well beyond financial data and is arguably the most portable thing here.</li>
+    <li><strong>Intrinsic dimensionality of ~30</strong> in firm balance-sheet state under this objective, stable across latent widths, with halving the width costing 62% in prediction error.</li>
+    <li><strong>Two methodological results.</strong> A null that overshoots into the wrong sign is a broken comparison, not a strong finding ; that instinct caught a false negative produced by two stacked bugs. And an event-set audit that found 41.9% artifact in a proxy most people would have shipped unexamined.</li>
+    <li><strong>The data work.</strong> Four spec assumptions about SEC filings were wrong; as-first-reported vintage selection turned out load-bearing at 51.4% re-reports.</li>
+  </ul>
+
+  <h3>Does not hold, or was never established</h3>
+  <ul>
+    <li><strong>No early warning of anything.</strong> Flat at every horizon, both event types, every scoring variant.</li>
+    <li><strong>Restatement detection is weak.</strong> d = 0.24 against a pre-event band of 0.13–0.16.</li>
+    <li><strong>The probe suite established nothing</strong> in either direction, because its labels did not require history.</li>
+    <li><strong>Label efficiency does not hold.</strong> 17–30% of the encoder's own lift at 50 labels.</li>
+    <li><strong>The encoder-beats-naive-baseline result is unconfirmed.</strong> The 4× margin over a model-free per-slot z-score was measured on the contaminated 401-firm event set and was never rerun on the cleaned subset. It should not be cited until it is.</li>
+    <li><strong>No action conditioning, so nothing can be rolled forward or planned in.</strong> A simulator predicts state conditional on <em>actions</em>, and filings contain no actions ; only the state that resulted from them. What this learns is <var>p</var>(<var>z</var><span class="sb">t+k</span> <span class="op">|</span> <var>z</var><span class="sb">1:t</span>), an autonomous transition, not <var>p</var>(<var>z</var><span class="sb">t+1</span> <span class="op">|</span> <var>z</var><span class="sb">t</span>, <var>a</var><span class="sb">t</span>). It is a self-supervised sequence representation learner with a latent predictive objective.</li>
+    <li><strong>Not hierarchical.</strong> Single-level masking only; the three-level variant was specified and never run.</li>
+    <li><strong>No flows.</strong> Balance-sheet instants only. Income and cash-flow items, where the genuine per-period dynamics live, are untouched.</li>
+  </ul>
+</section>
+
+<!-- 13 -->
+<section>
+  <p class="eyebrow">Entry 13 ; the deliverable</p>
+  <h2>What comes out at the end</h2>
+  <p>Not a product, and not a detector. One result, a mechanism, and an unusually complete account of what does not work.</p>
+  <ul>
+    <li><strong>A trained encoder and a full pipeline.</strong> Maps a firm's financial history to a ~30-dimensional latent state, self-supervised, no labels. It will not transfer to a private firm's ledgers ; different chart of accounts, no XBRL, different scale. What transfers is the method: architecture, collapse fix, normalisation scheme, ablation protocol. Anyone deploying this retrains from scratch on the target firm's own history.</li>
+    <li><strong>A public repository and report</strong> in which the negatives occupy as much space as the positive, because they are most of what was learned.</li>
+    <li><strong>One defensible claim with a number.</strong> Firm financial state is path-dependent: order carries 21% of predictive signal on the full window, 12% on a regime-stable control, monotone across length. That is the technical form of the argument that a client is a state, not a corpus.</li>
+    <li><strong>One mechanism worth reusing.</strong> How and why JEPA collapses on data with dominant static structure, and what actually prevents it.</li>
+  </ul>
+
+  <p>The original ambition was an unsupervised anomaly detector that needs no labels ; which matters because a firm reconciling a hundred client ledgers has none. Four separate experiments say that does not work here, each in a different way. That is an answered question rather than a failed project, but it is not the answer that was wanted, and the writeup should not pretend otherwise.</p>
+
+  <div class="pull">A clean negative on a falsifiable claim is a finding. A positive on a broken test is not. This project produced both kinds and learned to tell them apart.</div>
+</section>
+
+<footer>
+  Firm-State JEPA &#183; Phase 1 record &#183; 2013Q1–2020Q4 &#183; 11,742 firms &#183; 215,944 observations &#183; 749,952 parameters &#183; seed 20260804
+  <br>
+  <a href="mailto:zapdhruva@gmail.com">zapdhruva@gmail.com</a>
+  &#183; <a href="https://github.com/DhruvaMyakeri">GitHub</a>
+  &#183; <a href="index.html">The Latent Archive</a>
+</footer>
+
+</div>
+<script src="js/theme.js"></script>
+<script src="js/player.js"></script>
+</body>
+</html>

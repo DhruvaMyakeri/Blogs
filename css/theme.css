@@ -1,10 +1,17 @@
 /* Base paint so soft-nav never flashes bare white while page CSS swaps */
 html {
   background: #1a1410;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 html[data-theme="dark"] {
   background: #0c0a08;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* Soft-nav: kill entrance motion (keeps player/toggle visually still) */

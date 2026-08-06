@@ -1029,6 +1029,7 @@ input {
   right: 1.1rem;
   left: auto;
   bottom: auto;
+  margin: 0;
   transform: none;
   z-index: 40;
   width: min(320px, calc(100vw - 1.5rem));
@@ -1200,9 +1201,13 @@ html[data-theme="dark"] .featured-media {
 
 @media (max-width: 520px) {
   .listening {
-    top: 0.65rem;
-    right: 0.65rem;
-    width: min(280px, calc(100vw - 1.25rem));
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: max(1.1rem, env(safe-area-inset-bottom, 0px));
+    width: min(300px, calc(100vw - 1.5rem));
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .listening-inner {

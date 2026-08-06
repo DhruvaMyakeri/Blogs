@@ -181,14 +181,6 @@
   function placePlayer() {
     const el = document.querySelector(".listening[data-persistent]");
     if (!el) return;
-    const wrap = document.querySelector(".wrap");
-    if (wrap) {
-      el.classList.add("listening--blog");
-      const footer = wrap.querySelector("footer");
-      if (footer) wrap.insertBefore(el, footer);
-      else wrap.appendChild(el);
-      return;
-    }
     el.classList.remove("listening--blog");
     if (el.parentElement !== document.body) document.body.appendChild(el);
   }
@@ -301,6 +293,7 @@
       placePlayer();
 
       if (push) history.pushState({ soft: true }, "", url.href);
+      window.__archiveTrackPage?.();
       bindLinks();
       const html = document.documentElement;
       const prev = html.style.scrollBehavior;

@@ -178,6 +178,29 @@
 
   tagHeadAssets();
 
+  function placePlayer() {
+    const el = document.querySelector(".listening[data-persistent]");
+    if (!el) return;
+    const wrap = document.querySelector(".wrap");
+    if (wrap) {
+      el.classList.add("listening--blog");
+      const footer = wrap.querySelector("footer");
+      if (footer) wrap.insertBefore(el, footer);
+      else wrap.appendChild(el);
+      return;
+    }
+    el.classList.remove("listening--blog");
+    if (el.parentElement !== document.body) document.body.appendChild(el);
+  }
+
+  function hoistChrome() {
+    const listening = document.querySelector(".listening[data-persistent]");
+    const themeBtn = document.querySelector("[data-theme-toggle]");
+    if (listening) document.body.appendChild(listening);
+    if (themeBtn) document.body.appendChild(themeBtn);
+    return { listening, themeBtn };
+  }
+
   function isInternal(href) {
     if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
     if (href.startsWith("javascript:")) return false;
@@ -222,8 +245,7 @@
     const url = new URL(href, location.href);
     if (push && url.href === location.href) return;
 
-    const listening = document.querySelector(".listening[data-persistent]");
-    const themeBtn = document.querySelector("[data-theme-toggle]");
+    const { listening, themeBtn } = hoistChrome();
     const pinned = new Set([listening, themeBtn].filter(Boolean));
 
     document.documentElement.classList.add("has-soft-nav");
@@ -276,6 +298,7 @@
         el.removeAttribute("data-nav-next");
       });
       pinThemeCss();
+      placePlayer();
 
       if (push) history.pushState({ soft: true }, "", url.href);
       bindLinks();
@@ -308,4 +331,5 @@
   window.__archiveBindLinks = bindLinks;
   window.addEventListener("popstate", () => softNavigate(location.href, false));
   bindLinks();
+  placePlayer();
 })();

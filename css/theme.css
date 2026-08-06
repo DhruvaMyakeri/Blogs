@@ -280,7 +280,8 @@ html[data-theme="dark"] .listening-btn:hover {
 }
 
 @media (max-width: 640px) {
-  .listening {
+  /* Archive pages: fixed bottom-center */
+  .listening:not(.listening--blog) {
     top: auto !important;
     right: 0 !important;
     left: 0 !important;
@@ -289,11 +290,28 @@ html[data-theme="dark"] .listening-btn:hover {
     margin-left: auto !important;
     margin-right: auto !important;
   }
+
+  /* Blog pages: sticky, centered in the bottom of the article */
+  .listening.listening--blog {
+    position: sticky !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px)) !important;
+    width: min(300px, 100%) !important;
+    margin: 1.75rem auto 1rem !important;
+    z-index: 40;
+  }
 }
 
 /* Blog top bar: leave room for the top-right player on desktop */
 @media (min-width: 641px) {
   .archive-bar-inner {
     padding-right: 21rem;
+  }
+
+  .listening.listening--blog {
+    /* stay fixed top-right on desktop even when docked in .wrap */
+    position: fixed !important;
   }
 }

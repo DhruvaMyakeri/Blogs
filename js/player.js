@@ -160,12 +160,23 @@
 
   load(index, false);
 
-  /* ; ; Soft navigation: keep this audio element alive across pages ; ; */
-  document.querySelectorAll("head link[rel='stylesheet'], head style, head link[rel='preconnect']").forEach((el) => {
-    const href = el.getAttribute("href") || "";
-    if (href.includes("theme.css")) el.setAttribute("data-keep", "");
-    else el.setAttribute("data-nav-asset", "");
-  });
+  /* Soft navigation: keep this audio element alive across pages */
+  function tagHeadAssets() {
+    document.querySelectorAll("head link[rel='stylesheet'], head style, head link[rel='preconnect']").forEach((el) => {
+      const href = el.getAttribute("href") || "";
+      if (href.includes("theme.css")) {
+        el.setAttribute("data-keep", "");
+        el.removeAttribute("data-nav-asset");
+        el.removeAttribute("data-nav-next");
+        return;
+      }
+      if (!el.hasAttribute("data-nav-next")) {
+        el.setAttribute("data-nav-asset", "");
+      }
+    });
+  }
+
+  tagHeadAssets();
 
   function isInternal(href) {
     if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
@@ -222,6 +233,9 @@
       if (!res.ok) throw new Error("fetch failed");
       const doc = new DOMParser().parseFromString(await res.text(), "text/html");
 
+      // Mark current page styles for removal (keeps theme.css).
+      tagHeadAssets();
+
       // 1) Install next page CSS alongside the current CSS (no gap / no white flash).
       const pending = [];
       doc.head.querySelectorAll("link[rel='stylesheet'], style, link[rel='preconnect']").forEach((el) => {
@@ -229,6 +243,7 @@
         if (hrefAttr.includes("theme.css")) return;
         const clone = document.importNode(el, true);
         clone.setAttribute("data-nav-next", "");
+        clone.removeAttribute("data-nav-asset");
         document.head.appendChild(clone);
         if (clone.tagName === "LINK" && clone.rel === "stylesheet") {
           pending.push(waitForStyle(clone));

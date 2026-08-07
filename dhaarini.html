@@ -14,6 +14,24 @@
   <link rel="stylesheet" href="css/theme.css" />
   <style>
     .article-body.dhaarini-body { max-width: 46rem; }
+    .article-hero {
+      max-width: 46rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .article-hero img {
+      width: 100%;
+      aspect-ratio: 16 / 7;
+      max-height: 280px;
+      object-fit: cover;
+      object-position: center;
+    }
+    @media (min-width: 900px) {
+      .article-hero img {
+        max-height: 240px;
+        aspect-ratio: 2.4 / 1;
+      }
+    }
     .article-body.dhaarini-body p:first-of-type::first-letter {
       font-size: inherit; float: none; padding: 0; line-height: inherit;
       font-family: inherit; color: inherit;
@@ -26,6 +44,7 @@
     }
     .dhaarini-body h2 { font-size: 1.35rem; text-transform: uppercase; font-weight: 600; }
     .dhaarini-body h3 { font-size: 1.12rem; font-weight: 600; text-transform: none; letter-spacing: 0.02em; }
+    .dhaarini-body h3:first-of-type { font-size: 1.45rem; line-height: 1.25; }
     .dhaarini-body h4 { font-size: 1rem; font-weight: 600; text-transform: none; }
     .dhaarini-body ul, .dhaarini-body ol { margin: 0 0 1.25rem; padding-left: 1.25rem; color: var(--ink-soft); }
     .dhaarini-body li { margin-bottom: 0.45rem; }

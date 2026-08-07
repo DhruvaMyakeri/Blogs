@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My approach to SatSure’s Dhaarini Project · The Latent Archive</title>
+  <meta name="description" content="An independent write-up engaging with SatSure’s Dhaarini white paper on Indian agricultural imagery." />
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("archive-theme") === "dark" ? "dark" : "light");</script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/theme.css" />
+  <style>
+    .article-body.dhaarini-body { max-width: 46rem; }
+    .article-body.dhaarini-body p:first-of-type::first-letter {
+      font-size: inherit; float: none; padding: 0; line-height: inherit;
+      font-family: inherit; color: inherit;
+    }
+    .dhaarini-body h2, .dhaarini-body h3, .dhaarini-body h4 {
+      font-family: var(--font-heading);
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      margin: 2.1rem 0 0.85rem;
+    }
+    .dhaarini-body h2 { font-size: 1.35rem; text-transform: uppercase; font-weight: 600; }
+    .dhaarini-body h3 { font-size: 1.12rem; font-weight: 600; text-transform: none; letter-spacing: 0.02em; }
+    .dhaarini-body h4 { font-size: 1rem; font-weight: 600; text-transform: none; }
+    .dhaarini-body ul, .dhaarini-body ol { margin: 0 0 1.25rem; padding-left: 1.25rem; color: var(--ink-soft); }
+    .dhaarini-body li { margin-bottom: 0.45rem; }
+    .dhaarini-body hr {
+      border: none; border-top: 1px solid var(--rule); margin: 2rem 0;
+    }
+    .dhaarini-body img {
+      display: block; width: 100%; height: auto; margin: 1.25rem 0 1.5rem;
+      border: 1px solid var(--rule);
+    }
+    .dhaarini-body code {
+      font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.88em;
+    }
+    .dhaarini-body .plain-out {
+      margin: 0 0 1.25rem;
+      color: var(--ink);
+      font-size: 0.92rem;
+      line-height: 1.55;
+      overflow-x: auto;
+    }
+    .dhaarini-body li .plain-out { margin: 0.45rem 0 0.35rem; }
+    .table-wrap { overflow-x: auto; margin: 0 0 1.35rem; -webkit-overflow-scrolling: touch; }
+    .dhaarini-body table {
+      width: 100%; border-collapse: collapse; font-size: 0.82rem;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    .dhaarini-body th, .dhaarini-body td {
+      border-bottom: 1px solid var(--rule); padding: 0.45rem 0.55rem; text-align: left;
+      vertical-align: top; color: var(--ink-soft);
+    }
+    .dhaarini-body th { color: var(--ink); font-weight: 600; }
+    .subnote {
+      margin: 1.25rem 0 1.75rem;
+      border: 1px solid var(--rule);
+      background: linear-gradient(175deg, var(--panel-fill) 0%, var(--panel-fill-b) 100%);
+    }
+    .subnote > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.55rem 0.85rem;
+    }
+    .subnote > summary::-webkit-details-marker { display: none; }
+    .subnote-kicker {
+      font-family: var(--font-heading); font-size: 0.62rem; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--sepia);
+      margin: 0 0 0.2rem;
+    }
+    .subnote-title {
+      font-family: var(--font-heading); font-size: 0.88rem; font-weight: 600;
+      letter-spacing: 0.01em; margin: 0; color: var(--ink-soft);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .subnote-title::before {
+      content: "▸ ";
+      color: var(--sepia);
+      font-size: 0.8em;
+    }
+    .subnote[open] .subnote-title::before { content: "▾ "; }
+    .subnote-body {
+      border-top: 1px solid var(--rule);
+      padding: 0.85rem 0.9rem 1rem;
+    }
+    .subnote-body h2, .subnote-body h3, .subnote-body h4 { margin-top: 1.25rem; }
+    .subnote-body img { margin: 0.85rem 0 1.1rem; }
+    .part-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.55rem 0.55rem;
+      margin: 0.25rem 0 1.85rem;
+      padding: 0.85rem 0.15rem;
+      border-top: 2.5px solid var(--ink);
+      border-bottom: 2.5px solid var(--ink);
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .part-nav a {
+      color: var(--ink);
+      text-decoration: none;
+      padding: 0.35rem 0.55rem;
+      background: rgba(92, 64, 48, 0.1);
+      border: 1.5px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+    .part-nav a:hover {
+      background: var(--ink);
+      color: var(--parchment, #ebe2d0);
+      box-shadow: none;
+      transform: translate(1px, 1px);
+    }
+    .part-nav .sep {
+      display: none;
+    }
+    .dhaarini-body .part-anchor {
+      display: block;
+      height: 0;
+      width: 0;
+      overflow: hidden;
+      scroll-margin-top: 6rem;
+    }
+    @media (max-width: 640px) {
+      .subnote-title { white-space: normal; }
+      .page { overflow-x: clip; }
+      .part-nav { font-size: 0.78rem; gap: 0.4rem; }
+      .part-nav a { padding: 0.3rem 0.45rem; }
+      .dhaarini-body .part-anchor { scroll-margin-top: 5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-grain" aria-hidden="true"></div>
+    <div class="page-inner">
+      <header class="site-header">
+        <div class="brand">
+          <a href="index.html">
+            <p class="brand-title">The Latent Archive</p>
+          </a>
+          <span class="brand-mark" aria-hidden="true"></span>
+          <p class="brand-tag">Notes from the margins</p>
+        </div>
+        <nav class="nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="notes.html">Notes</a>
+          <a href="research.html">Research</a>
+          <a href="about.html">About</a>
+        </nav>
+      </header>
+
+      <article class="article-header">
+        <p class="article-kicker">Research · SatSure</p>
+        <h1 class="article-title">My approach to SatSure’s Dhaarini Project</h1>
+        <p class="article-meta">An independent write-up · geospatial fundamentals · experiment record</p>
+      </article>
+
+      <div class="article-hero">
+        <img src="assets/images/img-dhaarini.png" alt="" />
+      </div>
+
+      <div class="article-body dhaarini-body">
+
+<h3>Introduction (<strong>The informal pure thoughts blog where its just me reading the white paper thinking is below)</strong></h3>
+<p>This is an independent write-up documenting my process of engaging with SatSure's Dhaarini white paper: reading it, picking up the geospatial data science fundamentals needed to actually reason about it, and then running a small, self-contained experiment to stress-test its central architectural bets on real data.</p>
+<p>This wasn't commissioned. I read the white paper, found the core thesis (that a label-free representation of Earth, learned once, can be reused cheaply across tasks and geographies) interesting and testable, and wanted to see how much of it would actually hold up on real Indian agricultural imagery at a scale I could run on my own.</p>
+<p>The blog is in three parts: first, my reading of what Dhaarini is trying to solve and why; second, the geospatial data science fundamentals I had to learn to make sense of any of this (satellite bands, reflectance, spectral indices, CRS, optical vs SAR); and third, the actual experiment, building a data pipeline from the AgriFieldNet India dataset, training supervised baselines, training a label-free encoder (MAE, then JEPA), and testing whether the resulting representation actually transfers across geography, the way the white paper's core bet requires it to.</p>
+<p>Worth being upfront about scope. This isn't a build of Dhaarini, and it doesn't touch every layer in the white paper. I tested what I could run solo, on a public dataset, with CPU-scale compute, on the layers I found most interesting and most testable.So this is a stress test of two specific bets (reuse and transfer) on one layer of a much bigger architecture, not a report card on Dhaarini as a whole. I'd rather say that plainly than let the results imply more coverage than they have.</p>
+
+<details class="subnote" id="informal-notes">
+  <summary>
+    <p class="subnote-kicker">Informal notes</p>
+    <p class="subnote-title">Me→ Dhruva Myakeri, looking into Dhaarini docs and documenting my thoughts here</p>
+  </summary>
+  <div class="subnote-body">
+<p>So dhaarini is an earth intelligence backbone ,  so basically its not a single foundation model. It is something that wants to prevent the “re-learning” of earth from scratch for every new task, sector and geo.</p>
+<p>A “earth model” as it is referred to as in the docs. hmm so a searchable memory of the “EARTH” , and one of the core bets is to adapt it cheaply for downstream products.</p>
+<p>the layers</p>
+<p><img src="assets/images/dhaarini-layers-notes.png" alt="image.png" loading="lazy" /></p>
+<p>hmm,  the earth memory is pretty , so basically theres no discarding of embeddings after use, preserve them. <strong>(SPOILER ALERT, I HAVE REDACTED THE next analogy)</strong> , (would it be fine if for now i picture it as how google maps street view functions), but this is from the satellite, which captures even more coarse, and fine details <strong>(spans to multiple sensors and resolutions, optical, Sar, weather, terrain etc)</strong> and from my conversation with Satish J i remember him mention about multiple sorts of sensors and types of data, so yea hmm, (actually i have a tick in my brain for this technical part ill address after my next point) the docs also mention on why designing this as an india first is advantageous, since it has the hardest geospatial environments  , and love the reasoning .</p>
+<p><img src="assets/images/dhaarini-india-first.png" alt="image.png" loading="lazy" /></p>
+<p>so with this and coming to address my tick in the brain, but unlike a street view, sorry for assuming that as a subject if its wrong but i feel when it comes to modelling the earth, thats what comes to my mind,  so the thesis rests on the assumption that intelligence learned once transfers across geographies and tasks. but geospatial data is non-stationary. umm so yea thats what ticked my brain for a bit,</p>
+<p><strong>this is where i realise my analogy is wrong btw</strong></p>
+<p>actually uk what i would like to redact my analogy to the street view, thats a photo archive indexed by location, earth memory is an embedding space “similarity” , like how face rec embeddings let you search by resemblance .</p>
+<p>if u train one region and test on another, the accuracy drop is visible prolly, and that can be used as a sort of a metric</p>
+<p>I myself have built self supervised representation models and fought the embedding collapse, the failure mode id watch is that a shared embedding space either collapses or overfits, to the dominant regions’,</p>
+<p>So rn i havent understood everything correctly since i havnt gone deep into understanding and working on this space, and to broaden my understanding i am building a smol version of this , kinda, a self supervised embedding on indian sentinel 2 crop data, probed cheaply to test the reuse bet, and tested across regions to actually see the transfer drop rather than theorize it.</p>
+<p>New to the “geospatial” side ,so gonna get started with the basics,,,,, so anyways these are questions i’m testing , not conclusions, umm, so yea</p>
+<p>happy to share what i learn</p>
+  </div>
+</details>
+
+<nav class="part-nav" aria-label="Parts">
+  <a href="#part-1">I · Reading Dhaarini</a>
+  <span class="sep" aria-hidden="true">/</span>
+  <a href="#part-2">II · Geospatial basics</a>
+  <span class="sep" aria-hidden="true">/</span>
+  <a href="#part-3">III · Modelling</a>
+</nav>
+
+<hr />
+<span class="part-anchor" id="part-1" aria-hidden="true"></span>
+<p>So I have read the dhaarini docs and have got some understanding , which was somewhat recorded in that informal blog.</p>
+<p>This blog now also includes me learning the fundamentals on Geospatial Data Science etc</p>
+<p><strong>→the problem dhaarini attacks</strong></p>
+<p>Conventional geospatial AI is task-specific, every new problem triggers new data, labels, model , benchmark, etc(deployment …)</p>
+<p>This produces outputs but never accumulates reusable intelligence underneath them. As a company expands across sectors, this repeated assembly becomes the bottleneck, it relearns Earth from scratch each time.</p>
+<p>→what dhaarini is</p>
+<p>Dhaarini isn't a single "earth model" you feed an image and get an answer back from. It's what the white paper calls an <strong>Earth Intelligence Backbone</strong> — a layered system built around one shared representation of Earth, with everything else (memory, adaptation, APIs, governance) organized around that representation.</p>
+<p>The layers:</p>
+<p><img src="assets/images/dhaarini-layers.png" alt="image.png" loading="lazy" /></p>
+<h3>The two central bets (which this project tests)</h3>
+<ul><li><strong>Reuse:</strong> a representation learned once (ideally without labels) can be adapted cheaply to many downstream tasks.</li><li><strong>Transfer:</strong> that reused representation holds across geographies and tasks, the risky assumption, because geospatial data is <strong>non-stationary</strong> (the same crop looks different across soil, climate, and season).</li></ul>
+<hr />
+<span class="part-anchor" id="part-2" aria-hidden="true"></span>
+<h2>Part 2: Geospatial data-science basics</h2>
+<p>Everything needed to understand how satellite imagery is read and prepared. None of this is standard ML background, so it is spelled out.</p>
+<h3>A satellite image is not a photo</h3>
+<p>A normal photo is <code>(Height, Width, 3)</code>: red, green, blue. A satellite image is a <strong>stack of spectral bands</strong>, <code>(Bands, Height, Width)</code>: channels first. Each band measures how much light of a specific wavelength reflected off the ground. Our data has <strong>12 bands</strong>.</p>
+<p><img src="assets/images/dhaarini-bands.png" alt="image.png" loading="lazy" /></p>
+<h3>Reflectance, not brightness</h3>
+<p>Pixel values are not 0–255 colours. They are <strong>reflectance</strong>, the fraction of incoming light reflected, usually stored as scaled integers. Never assume the scale; measure the actual value range of any new dataset before normalizing.</p>
+<h3>The invisible bands carry the signal</h3>
+<p>Healthy vegetation absorbs red light (for photosynthesis) and strongly reflects <strong>near-infrared (NIR)</strong>. That NIR/red contrast is the most informative feature for agriculture and is completely invisible to the human eye. This is why "just use RGB" throws away most of the value.</p>
+<h3>Spectral indices</h3>
+<p>Simple ratios of bands that summarize physical properties:</p>
+<ul><li><strong>NDVI</strong> = (NIR − Red) / (NIR + Red), vegetation vigour. Range −1 to +1; bare soil/water near 0, dense healthy crops toward 0.7–0.9.</li><li><strong>NDWI</strong> = (Green − NIR) / (Green + NIR), water/moisture.</li><li><strong>NDBI</strong> = (SWIR1 − NIR) / (SWIR1 + NIR), built-up/bare ground.</li></ul>
+<p>A random forest on a few good indices is already a respectable classifier.</p>
+<h3>Resolution</h3>
+<p>Each pixel covers a fixed ground distance. Our bands are natively 10 m, 20 m, or 60 m per pixel, resampled to a common 10 m grid. <strong>Resolution can be derived from metadata:</strong> for a chip with bounds spanning 2560 m over 256 pixels, 2560 / 256 = 10 m/pixel.</p>
+<h3>Coordinate Reference Systems (CRS) and projections</h3>
+<p>A CRS is the mathematical definition of how pixel positions map to real locations on the curved Earth. Our chips use <strong>UTM</strong> projections. UTM coordinates are in <strong>metres</strong>, which is why resolution falls out of the bounds directly. Mismatched CRSs between two layers are the classic silent bug: layers that look aligned but are physically offset. Converting a UTM coordinate to latitude/longitude (WGS84, EPSG:4326) is a <strong>reprojection</strong>.</p>
+<h3>Optical vs SAR</h3>
+<ul><li><strong>Optical</strong> (our data, Sentinel-2): a multi-spectral camera. Sees reflected sunlight. <strong>Clouds block it</strong>, hence cloud-free composites.</li><li><strong>SAR</strong> (radar, e.g. Sentinel-1): active radar, complex-valued, sees through clouds day or night. Fundamentally different physics (backscatter, phase, speckle). Not used here, but part of what Dhaarini fuses.</li></ul>
+<h3>Tools used</h3>
+<ul><li><strong>rasterio / GDAL</strong>: read GeoTIFF rasters, access metadata (bands, dtype, CRS, bounds).</li><li><strong>rasterio.warp.transform</strong>: reproject coordinates between CRSs.</li><li><strong>numpy</strong>: array handling; bands stacked into <code>(12, H, W)</code>.</li><li><strong>boto3</strong>: pull data from an S3-compatible public bucket.</li></ul>
+<h3>Common data-reading pitfalls (all hit in this project)</h3>
+<ul><li><strong>uint16 underflow:</strong> subtracting unsigned integers wraps negatives to huge positives. Cast to float <em>before</em> subtracting (e.g. for NDVI).</li><li><strong>Band ordering:</strong> <code>B8A</code> sorts after <code>B12</code> alphabetically, so relying on sort/glob order silently scrambles channels. Order bands explicitly.</li><li><strong>File-type confusion:</strong> several <code>.tif</code> files per chip look identical; the <strong>value range</strong> identifies them (0–36 = crop labels, thousands = field IDs, reflectance = imagery), not the filename.</li><li><strong>Per-image vs global normalization:</strong> normalize with statistics computed across the whole dataset, not per patch, or identical crops under different lighting get mapped differently.</li></ul>
+<hr />
+<h2>Part 3: The dataset</h2>
+<p><strong>AgriFieldNet India Competition Dataset</strong> (Radiant Earth, via Source Cooperative).</p>
+<div class="table-wrap"><table><thead><tr><th>Property</th><th>Value</th></tr></thead><tbody><tr><td>Imagery</td><td>Sentinel-2, optical, single-date</td></tr><tr><td>States</td><td>Uttar Pradesh, Rajasthan, Odisha, Bihar</td></tr><tr><td>Usable chips</td><td>~1,165 (image + train label)</td></tr><tr><td>Chip size</td><td>256 x 256 px @ 10 m = 2.56 km x 2.56 km</td></tr><tr><td>Bands</td><td>12 (B01–B12 incl. B8A), uint16, separate single-band tifs</td></tr><tr><td>Longitude range</td><td>76.26°E (west) to 88.03°E (east)</td></tr><tr><td>Labels</td><td>Per-pixel crop type (segmentation), 13 classes</td></tr><tr><td>Label density</td><td><strong>0.256%</strong> of pixels labelled crop; 99.74% background</td></tr></tbody></table></div>
+<h4>Classes</h4>
+<p><code>0</code> Background, <code>1</code> Wheat, <code>2</code> Mustard, <code>3</code> Lentil, <code>4</code> Green pea, <code>5</code> Sugarcane, <code>6</code> Garlic, <code>8</code> Maize, <code>9</code> Gram, <code>13</code> Coriander, <code>14</code> Potato, <code>15</code> Berseem, <code>16</code> Rice, <code>36</code> Fallow.</p>
+<h4>Key data properties (measured)</h4>
+<p class="plain-out"><strong>Total pixels     : 3,735,552   (over 57 chips)<br>
+Non-zero (crop)  : 9,575  (0.256% of all pixels)<br>
+Per class: class 1: 3,087 | class 2: 3,264 | class 16: only 14 pixels | ...</strong></p>
+<p>Two facts dominate everything downstream: <strong>extreme label sparsity</strong> (0.256%) and <strong>severe class imbalance</strong> (some crops have thousands of pixels, others 14).</p>
+<p><strong>→Building the data foundation</strong></p>
+<p>Goal: turn raw <code>.tif</code> files into verified <code>(image, label)</code> pairs.</p>
+<h4>Reading a chip</h4>
+<p><code>rasterio.open()</code> gives metadata and pixels. First read confirmed the format:</p>
+<p class="plain-out"><strong>Band count : 1<br>
+Size (H,W) : 256 256<br>
+Dtype : uint16<br>
+CRS : EPSG:32645<br>
+Bounds : BoundingBox(left=589600.0, bottom=2833920.0, right=592160.0, top=2836480.0)<br>
+Value range: 0 to 6642</strong></p>
+<p>(This was a <code>field_ids</code> file: the 0–6642 range gives it away, not the filename.)</p>
+<h4>Assembling 12 bands</h4>
+<p>Each chip stores 12 single-band files (<code>..._B01_10m.tif</code> … <code>..._B12_10m.tif</code>). <code>load_chip</code> opens them <strong>in explicit physical order</strong> and stacks to <code>(12, 256, 256)</code>. Per-band ranges on one chip:</p>
+<p class="plain-out"><strong>Chip shape: (12, 256, 256)<br>
+B01: 44-48   B02: 35-47   B03: 29-45   B04: 22-48<br>
+B05: 24-51   B06: 28-67   B07: 31-90   B08: 26-86<br>
+B8A: 29-97   B09: 7-17    B11: 11-96   B12: 7-89</strong></p>
+<p>The rising staircase from visible (B02–B04) to NIR (B07–B8A) is the vegetation signature. B09 (water vapour) is flattest: low information.</p>
+<h4>Global normalization</h4>
+<p>Streamed over all chips to compute per-band mean/std (using running sums of <code>x</code> and <code>x²</code>; variance = E[x²] − E[x]²), saved to <code>band_stats.npz</code>. Full-dataset result:</p>
+<p class="plain-out"><strong>Per-band mean: [43.33 38.76 37.69 39.6 42.69 55.08 63.77 60.4 70.24 13.2 69.52 48.5]<br>
+Per-band std : [3.38 4.22 5.66 9.81 8.51 6.8 8.13 7.79 9.15 2.37 17.75 16.45]</strong></p>
+<h4>Pairing images with labels</h4>
+<p>Chips matched by ID; only chips with both an image and a label kept:</p>
+<p class="plain-out"><strong>Image chips: 59 | Crop labels: 1165 | Usable pairs: 57</strong></p>
+<p>Two orphan chips (image but no label) were legitimate test-split chips and dropped.</p>
+<h4>Patch labelling: the sparsity problem</h4>
+<p>Naive approach: cut 16x16 patches, label by the majority pixel. Result:</p>
+<p class="plain-out"><strong>8 patches | 2 classes: [1, 2]</strong></p>
+<p>Only 8 usable patches, because a 16x16 patch is "majority crop" only if it lands almost entirely inside a labelled field, nearly impossible at 0.256% density.</p>
+<p><strong>Fix: center-pixel labelling:</strong> slide a 16x16 window with stride 4; keep a patch only if its <strong>center pixel</strong> is a labelled crop; label it by that pixel. Result:</p>
+<p class="plain-out"><strong>540 patches | 12 classes  (on 57 chips)<br>
+10694 patches | 13 classes  (on full ~1165 chips)</strong></p>
+<h4>Splits</h4>
+<ul><li><strong>In-distribution:</strong> chip-level random split, 20% test, seed 42. Splitting by <strong>chip</strong> not patch prevents spatial leakage (overlapping patches from one field landing in both train and test).<p class="plain-out"><strong>Chips  -&gt; train 837, test 209<br>
+Patches-&gt; train 8530, test 2164</strong></p></li><li><strong>Rare-class filter:</strong> drop classes with < 40 train patches:<p class="plain-out"><strong>Sugarcane (20) drop, Rice (12) drop -&gt; 11 classes kept<br>
+Train: 8498 patches | Test: 2155 patches</strong></p></li></ul>
+<span class="part-anchor" id="part-3" aria-hidden="true"></span>
+<p><strong>MODELLING:</strong></p>
+<h3>Baselines (why?)</h3>
+<p>A baseline is a deliberately simple model built first so later, sophisticated models can be judged against it. Here they also serve the thesis directly: the supervised baseline is the "trained the expensive way" reference that the self-supervised embedding must match to prove the reuse bet.</p>
+<h3>Self-supervised learning: why</h3>
+<p>Labels are the scarce resource (0.256% of pixels). Self-supervised learning trains a model on the imagery <strong>without labels</strong>, by hiding part of the input and having the model predict the missing part. To do this it must learn the structure of farmland. The learned <strong>encoder</strong> is then a reusable representation.</p>
+<h3>Masked Autoencoder (MAE)</h3>
+<p>Mask a fraction of the patch, encode the visible part to an embedding, decode back to reconstruct the full patch, and compute loss (MSE) on the <strong>masked</strong> pixels only, so the model cannot cheat by copying visible input. After training, keep the encoder, discard the decoder. Lineage: He et al. 2021 (MAE), Cong et al. 2022 (SatMAE, the multi-spectral satellite adaptation).</p>
+<h3>JEPA (Joint-Embedding Predictive Architecture)</h3>
+<p>Instead of reconstructing pixels, predict the <strong>embedding</strong> of the masked content in latent space. A <strong>target encoder</strong> (an EMA, exponential moving average, copy of the main encoder, updated without gradients) produces the target; a predictor maps the context embedding to it. Because it predicts representations, not pixels, it is pressured toward semantic structure and away from surface noise. Lineage: I-JEPA (Assran et al. 2023); the text version is the author's prior work. The version here is simplified: it predicts the global patch representation rather than spatially-located target blocks, adapted to the 16x16 scale.</p>
+<h3>Dimensional collapse and VICReg</h3>
+<p>Self-supervised embeddings can <strong>collapse</strong>: the model routes information through very few dimensions, wasting the space. Measured by <strong>effective rank</strong> (from the eigenvalue spectrum of the embedding covariance; low = collapsed, near full = healthy). <strong>VICReg</strong> regularizes against this with two terms:</p>
+<ul><li><strong>Variance:</strong> push each dimension to have spread ≥ a target (keeps dims alive).</li><li><strong>Covariance:</strong> push off-diagonal covariances toward zero (keeps dims distinct / decorrelated). Variance alone controls per-dimension spread but not redundancy; covariance is what prevents rank collapse.</li></ul>
+<h3>Linear probing: the reuse test</h3>
+<p>Freeze the self-supervised encoder (weights locked, no gradients). Embed each labelled patch. Train <strong>only a single linear layer</strong> (<code>128 → 11</code>) on the labels. Because the probe has almost no capacity, any classification skill must come from the embedding already organizing the classes. If it works, the label-free representation is genuinely reusable.</p>
+<h3>Transfer test</h3>
+<p>Train the probe on one geographic region and evaluate on a held-out region. The drop versus in-distribution performance is the <strong>non-stationarity / transfer cost</strong>: the risky part of Dhaarini's thesis, quantified.</p>
+<h3>Earth Memory</h3>
+<p>Store every patch's embedding + metadata, and search by cosine similarity ("find farmland like this"). Retrieval quality is measured by the nearest-neighbour <strong>same-crop rate</strong> vs a random baseline.</p>
+<h3>Stage 2: Baselines (done)</h3>
+<h4>Baselines (trained with labels)</h4>
+<p>The "expensive way, with labels" reference the reuse bet has to match.</p>
+<ul><li>Random forest on spectral features: <strong>macro-F1 0.232</strong></li><li>Small CNN, end to end: <strong>macro-F1 0.240</strong></li></ul>
+<p>Side finding: wheat and mustard get confused in both models. They're both winter rabi crops with overlapping timing, so on single-date optical they look almost identical. Two different methods making the same mistake means it's the data, not the model.</p>
+<p>Deliberately simple models to set the bar the embedding must beat. Split is <strong>by chip, not by patch</strong>, to prevent spatial leakage (seed=42, 20% test).</p>
+<p>Full-data split: <strong>837 train / 209 test chips → 8,530 / 2,164 patches, 13 classes.</strong></p>
+<h4>Baseline A: Random Forest on spectral features</h4>
+<p>Per-patch: 12 band means + NDVI/NDWI/NDBI (15 features). Discards all spatial layout on purpose: tests how far pure spectral average gets you.</p>
+<ul><li><strong>Macro-F1 0.197</strong>, accuracy <strong>0.55</strong>.</li></ul>
+<h4>Baseline B: Small CNN (12→32→64 conv, global pool, linear)</h4>
+<p>Uses spatial texture the RF throws away. On CPU, 30 epochs.</p>
+<ul><li><strong>Macro-F1 0.186</strong>, accuracy 0.32. Train loss barely moved → <strong>underfitting</strong>, has headroom.</li></ul>
+<h4>Findings (the reportable part)</h4>
+<ul><li><strong>Quality tracks sample count.</strong> Only the 3–4 populous classes (Fallow, Wheat, Lentil, and one distinctive crop) are learnable; the ~10 rare classes score ~0.</li><li><strong>Macro-F1 fell vs the 57-chip run (0.35→0.20) even though accuracy rose</strong>, because the full test set now includes rare classes scoring 0. The honest, complete problem is harder than the flattering subset. Imbalance dominates.</li><li><strong>RF vs CNN = different failure modes, not a clean winner.</strong> RF is a conservative majority-guesser (dumps into big classes, safe precision); the CNN takes risks and actually engages rare classes (higher recall, lower precision).</li><li><strong>Single-date limitation is visible:</strong> two crops are heavily confused in <em>both</em> models: evidence that same-date spectra can't separate similarly-timed crops. Motivates Dhaarini's "time is a first-class dimension" claim.</li></ul>
+<h4>Next housekeeping</h4>
+<ul><li>Filter ultra-rare classes (<code>MIN_TRAIN_PATCHES = 40</code>) for a fair comparison; report the dropped ones as "insufficient data". (<code>filter_split.py</code>)</li><li>Attach crop names to all outputs (<code>CLASS_NAMES</code>) so confusion matrices read in real crops.</li></ul>
+<hr />
+<h3>Stage 3: Self-supervised geo-embedding (done)</h3>
+<p>A masked autoencoder (SatMAE / He-et-al. lineage), trained with <strong>no labels</strong> to reconstruct hidden pixels from visible ones, forcing it to learn farmland structure. Encoder → 128-dim embedding; decoder reconstructs the patch.</p>
+<ul><li><code>extract_patches.py</code>: pulls <strong>60,000</strong> patches from the 837 train chips (no label needed, so ~7× more data than the 8.5k labelled baseline patches). Saved to <code>pretrain_patches.npy</code>. This is the concrete payoff of self-supervision on a sparse-label dataset.</li><li><code>mae.py</code>: trains the MAE, saves the frozen encoder to <code>mae_encoder.pt</code>, reports embedding <strong>effective rank</strong> as a collapse check.</li></ul>
+<h4>The dimensional-collapse episode (the key finding)</h4>
+<ul><li>Plain MAE → effective rank <strong>21/128</strong> (thin: reconstruction needs few factors, so the embedding under-used its space).</li><li>First fix attempt (variance term only) → <strong>collapsed to rank 1.2/128</strong> while the variance loss read 0.0000. Diagnosis: this was a <strong>covariance/redundancy</strong> failure, not a variance one; all dims were correlated (individually spread, collectively rank-1). Variance regularization alone can't see this.</li><li>Correct fix: full <strong>VICReg</strong> (variance <strong>+ covariance</strong> terms). Covariance decorrelates dimensions → effective rank <strong>62/128</strong> (healthy). <code>cov</code> loss fell 3.6 → 1.6 across training, confirming the mechanism.</li><li>Cost: recon loss rose 0.059 → 0.14: capacity traded from reconstruction to a distributed embedding. Correct trade: a rich embedding that reconstructs a bit worse transfers better than a thin one that reconstructs well.</li><li>Tuning note: with covariance active, VAR_WEIGHT 25 vs 30 gave rank 62 vs 63: variance was no longer the binding constraint.</li></ul>
+<p><strong>This is a real instance of the "shared embedding collapses" failure mode:</strong> hit it, diagnosed the specific cause (redundancy, not low variance), fixed it with the right regularizer. Directly on-thesis for the transfer critique.</p>
+<hr />
+<h3>Stage 4: Reuse test (done)</h3>
+<p>Freeze the label-free encoder, embed every labelled patch, train <strong>only a single linear layer</strong> on top, evaluate on the same filtered 11-class test split.</p>
+<ul><li><code>probe.py</code>: loads frozen <code>mae_encoder.pt</code>, precomputes embeddings, trains an <code>nn.Linear(128 → 11)</code>, reports macro-F1 vs baselines.</li></ul>
+<h4>Result</h4>
+<div class="table-wrap"><table><thead><tr><th>Model</th><th>Labels used for representation</th><th>Adapter</th><th>Macro-F1</th></tr></thead><tbody><tr><td>Random Forest</td><td>full</td><td>RF on features</td><td>0.232</td></tr><tr><td>Small CNN</td><td>full</td><td>end-to-end</td><td>0.240</td></tr><tr><td><strong>MAE + linear probe</strong></td><td><strong>none</strong></td><td><strong>1 linear layer</strong></td><td><strong>0.224</strong></td></tr></tbody></table></div>
+<p><strong>The reuse thesis essentially holds.</strong> A linear probe on a representation learned with <strong>zero labels</strong> landed within ~0.02 of models trained end-to-end <em>with</em> labels, i.e. "learn Earth once (no labels), adapt cheaply (linear head)" works on Indian farmland. Notes:</p>
+<ul><li>The probe engages hard classes (Garlic 0.61 F1, Green pea 0.52) like the CNN, not just the majority classes.</li><li>Wheat↔Mustard confusion persists in all three models → the ceiling is the <strong>single-date data</strong>, not the method (two rabi crops, overlapping phenology).</li><li>The MAE is undertrained (40 epochs, recon still falling) → clear headroom to <em>beat</em> the baselines by training longer/bigger, or via a JEPA variant.</li></ul>
+<hr />
+<h3>Stage 6: Transfer stress test (done, THE HEADLINE RESULT)</h3>
+<p>Split chips <strong>geographically</strong> by longitude (west < 82.2°E = train, east ≥ = test) instead of randomly, using each chip's CRS reprojected to lat/lon. West ≈ Rajasthan/western UP (drier); east ≈ Bihar/Odisha. Same frozen MAE encoder, same linear probe.</p>
+<p><code>region_split.py</code> (per-chip longitude) → <code>probe_transfer.py</code> (geographic probe).</p>
+<h4>Result</h4>
+<div class="table-wrap"><table><thead><tr><th>Split</th><th>Macro-F1</th></tr></thead><tbody><tr><td>In-distribution (random, regions mixed)</td><td><strong>0.224</strong></td></tr><tr><td>Cross-region (train West → test East), all classes</td><td><strong>0.048</strong></td></tr><tr><td>Cross-region, <strong>shared classes only</strong> (removes distribution-shift artifact)</td><td><strong>0.054</strong></td></tr></tbody></table></div>
+<p><strong>~76% of performance lost when crossing regions, and it persists after restricting to crops present in BOTH regions.</strong> So the collapse is genuine <em>representation</em>-transfer failure, not just a missing-class artifact. This is non-stationarity quantified: the exact risk raised in the Dhaarini write-up, measured on real Indian data. The reuse bet that <em>held</em> in-distribution <em>breaks</em> across geography.</p>
+<h4>Why it collapsed (two mechanisms, both real)</h4>
+<ol><li><strong>Class distribution shifts:</strong> Fallow (class 10) is essentially test-only (common in the east, near-absent in the west), so the probe never learned it (0.00 F1). The label distribution itself is non-stationary across regions.</li><li><strong>Representation doesn't transfer even for shared crops:</strong> Green pea 0.52→0.14, Garlic 0.61→0.10. These grow in <em>both</em> regions, yet still failed in the east: the same crop <em>looks different</em> in eastern soil/climate/season than the embedding learned in the west. This is the "overfits to the dominant region" failure predicted in the write-up.</li></ol>
+<h4>Caveat (for rigour)</h4>
+<p>Part of the drop is the class-shift artifact (test-only + tiny-support classes). A cleaner number restricts to classes present in <em>both</em> regions to isolate pure representation-transfer from distribution-shift. TODO before quoting formally.</p>
+<h3>Stage 3b: JEPA variant (done)</h3>
+<h4>Why JEPA (my approach)</h4>
+<p>so an MAE is scored on reconstructing pixels, so to get the MSE low it has to model everything in the patch, even the region specific surface details, which doesnt transfer.</p>
+<p>hence having knowledge on JEPA, i knew it would remove this pressure. it predicts the embedding of the masked content, not the pixels.</p>
+<p>it only needs to get the representation right, hence it is pushed towards the important structure and away from the surface noise. henceee, if this theory would hold that would mean, this would become a transferrable representation.</p>
+<p>so i ran both, same backbone, only the objective changed:</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>In-distribution</th><th>Transfer (W to E)</th></tr></thead><tbody><tr><td>MAE (pixel)</td><td>0.224</td><td>0.054</td></tr><tr><td>JEPA (latent)</td><td>0.217</td><td><strong>0.079</strong></td></tr></tbody></table></div>
+<p>so thats what kinda did happen, the in distribution was almost a tie, JEPA gave 0.217 and mae had given 0.224, but the transfer, JEPA gave 0.079 and MAE gave 0.054, so the advantage appeared precisely where i assumed it would. in distribution there is no penalty for encoding region specific stuff since train and test share regions, so both should tie, and they did. a random improvement would have moved both numbers.</p>
+<p>the encoder did pretrain on all regions though, only the probe was west only, so its not really a data coverage thing, there are some probable reasons, but for now i had to test out if my assumptions and approaches would do something, and i believe JEPA would be an approach dhaarini could adopt, though i couldnt demonstrate it completely, the theory around JEPA is what makes me say that.</p>
+<h3>Stage 5: Earth Memory (done)</h3>
+<p>Index every patch as a stored embedding (JEPA) + metadata (crop, chip, longitude); search by cosine similarity: "find farmland like this." <code>earth_memory.py</code>.</p>
+<h4>Retrieval works</h4>
+<ul><li><strong>Nearest-neighbour same-crop rate: 82.4%</strong> (random baseline ~9%). The space is organized by agricultural meaning <em>without ever being told about crops</em>: the Earth Memory thesis, validated. Analog discovery works.</li><li>Retrieval "errors" are the same <strong>Wheat↔Mustard</strong> confusion seen in every other stage: a completely different method (retrieval, not classification) independently confirms these crops are entangled on single-date optical.</li></ul>
+<h4>A subtle, important observation</h4>
+<p>Some queries return neighbours at the <em>identical longitude</em> with sim ~0.998: the embedding partly encodes <strong>scene/location</strong>, not purely crop. This is the same fact as the transfer collapse, seen from another angle: a location-entangled embedding is exactly one that fails to generalize across regions. Retrieval success and transfer failure are two views of one underlying property.</p>
+<h4>The versioning problem: demonstrated</h4>
+<ul><li>Same-encoder best match (JEPA→JEPA): sim <strong>0.982</strong>.</li><li>Cross-encoder (JEPA query → MAE memory): sim <strong>0.523</strong> (near-garbage).</li><li>Different encoders learn different coordinate systems → **memory built with one encoder is meaningless to another.** Improve the encoder and the whole stored archive must be re-embedded. This is the Earth Memory lifecycle risk from the white paper, made concrete on real data.</li></ul>
+<hr />
+<ol><li><strong>Reuse works in-distribution:</strong> self-supervised embedding + linear probe (0.224) matches supervised baselines (RF 0.232, CNN 0.240) using <strong>no labels</strong>.</li><li><strong>Reuse breaks across regions:</strong> same embedding collapses to 0.054 W→E (~76% loss), persisting after removing class-distribution artifacts: non-stationarity, quantified.</li><li><strong>A better objective helps transfer:</strong> JEPA (latent) beats MAE (pixel) by +46% on transfer while tying in-distribution: a specific, theory-driven result.</li><li><strong>Earth Memory works and has a lifecycle cost:</strong> embedding retrieval hits 82% same-crop (vs 9% random); swapping encoders strands the stored memory (0.98→0.52 similarity): the versioning problem, demonstrated.</li></ol>
+<p>This is the empirical version of the argument made to SatSure: the reuse bet is real, the transfer risk is real and severe, and the pretraining objective is one lever that measurably reduces it.</p>
+<p>All of this ran on 57–1,165 chips and CPU-scale compute over a few days of solo iteration: with real data budgets and real compute, I'd expect every number here (reuse, transfer, JEPA's edge, retrieval quality) to move further in the direction the thesis predicts, not away from it.</p>
+
+        <nav class="article-nav">
+          <a href="research.html">← Research</a>
+          <a href="notes.html">All notes →</a>
+        </nav>
+      </div>
+
+      <footer class="site-footer">
+        <p>© The Latent Archive · Dhruva Myakeri · 2026</p>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="mailto:zapdhruva@gmail.com">Contact</a>
+          <a href="https://github.com/DhruvaMyakeri" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <script src="js/theme.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/player.js"></script>
+  <script>
+    document.querySelectorAll(".part-nav a[href^='#']").forEach((a) => {
+      a.addEventListener("click", (e) => {
+        const id = a.getAttribute("href").slice(1);
+        const el = document.getElementById(id);
+        if (!el) return;
+        e.preventDefault();
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        history.pushState(null, "", "#" + id);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -295,6 +295,7 @@
       if (push) history.pushState({ soft: true }, "", url.href);
       window.__archiveTrackPage?.();
       bindLinks();
+      window.__archiveCarouselInit?.();
       const html = document.documentElement;
       const prev = html.style.scrollBehavior;
       html.style.scrollBehavior = "auto";

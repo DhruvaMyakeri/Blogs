@@ -36,13 +36,29 @@
 
       <div class="layout">
         <main class="main">
-          <a class="featured" href="firm-jepa.html" data-post data-tags="research systems experiments jepa firm">
-            <div class="featured-media">
-              <img src="assets/images/img-skybody.png" alt="" />
-              <span class="featured-label">Project record</span>
-              <h2 class="featured-title">Firm-State JEPA</h2>
+          <section class="carousel" aria-roledescription="carousel" aria-label="Elsewhere">
+            <div class="carousel-viewport">
+              <div class="carousel-track">
+                <a class="carousel-slide" href="https://github.com/DhruvaMyakeri" target="_blank" rel="noopener noreferrer">
+                  <div class="carousel-media carousel-media--work">
+                    <img src="assets/images/img-more-work.png" alt="" />
+                    <span class="carousel-label">Elsewhere</span>
+                    <h2 class="carousel-title">More of my work at https://github.com/DhruvaMyakeri</h2>
+                  </div>
+                </a>
+                <a class="carousel-slide" href="https://www.thegroundedtimes.info/" target="_blank" rel="noopener noreferrer">
+                  <div class="carousel-media carousel-media--grounded">
+                    <img src="assets/images/img-groundedtimes.png" alt="" />
+                    <span class="carousel-label">Elsewhere</span>
+                    <h2 class="carousel-title">Check out Grounded Times</h2>
+                  </div>
+                </a>
+              </div>
             </div>
-          </a>
+            <button type="button" class="carousel-btn carousel-prev" aria-label="Previous slide">‹</button>
+            <button type="button" class="carousel-btn carousel-next" aria-label="Next slide">›</button>
+            <div class="carousel-dots" role="tablist" aria-label="Slides"></div>
+          </section>
 
           <div class="post-grid">
             <article class="post-card" data-post data-tags="research systems experiments jepa firm">
@@ -137,5 +153,6 @@
   <script src="js/theme.js"></script>
   <script src="js/analytics.js"></script>
   <script src="js/player.js"></script>
+  <script src="js/carousel.js"></script>
 </body>
 </html>

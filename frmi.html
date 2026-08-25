@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I Wanted to Watch a Dream · The Latent Archive</title>
+  <meta name="description" content="I went looking for a paper that claimed to decode dreams, found it had no code and no data, and built the waking version instead on a laptop." />
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("archive-theme") === "dark" ? "dark" : "light");</script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/theme.css" />
+  <style>
+    .article-body.frmi-body {
+      max-width: 46rem;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: var(--ink-soft);
+    }
+    .article-hero {
+      max-width: 46rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .article-hero img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      max-height: 320px;
+      object-fit: cover;
+      object-position: center center;
+    }
+    .article-body.frmi-body p:first-of-type::first-letter {
+      font-size: inherit; float: none; padding: 0; line-height: inherit;
+      font-family: inherit; color: inherit;
+    }
+    .frmi-body h2, .frmi-body h3 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--ink);
+      margin: 2.1rem 0 0.85rem;
+      line-height: 1.3;
+    }
+    .frmi-body h2 {
+      font-size: 1.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .frmi-body h3 {
+      font-size: 1.12rem;
+      letter-spacing: 0.02em;
+    }
+    .frmi-body p { margin: 0 0 1.15rem; }
+    .frmi-body strong { font-weight: 700; color: var(--ink); }
+    .frmi-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+    .frmi-body a:hover { color: var(--ink); }
+    .frmi-body code {
+      font-family: inherit;
+      font-size: 0.95em;
+      color: var(--ink);
+    }
+    .frmi-body ul {
+      margin: 0 0 1.25rem;
+      padding-left: 1.25rem;
+    }
+    .frmi-body li { margin-bottom: 0.45rem; }
+    .frmi-body .standfirst {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      line-height: 1.55;
+      color: var(--ink-soft);
+      margin: 0 0 1.25rem;
+    }
+    .frmi-body .byline {
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      color: var(--ink-faint);
+      margin: 0 0 1.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--rule);
+    }
+    .frmi-body .kicker { display: none; }
+    .frmi-body header.col { margin: 0; padding: 0; }
+    .frmi-body header.col h1 { display: none; }
+    .frmi-body section { padding: 0; margin: 0; }
+    .frmi-body section.band {
+      margin: 1.75rem 0;
+      padding: 1.25rem 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      background: transparent;
+    }
+    .frmi-body .col, .frmi-body .wrap-wide { max-width: none; margin: 0; padding: 0; }
+    .frmi-body figure { margin: 1.5rem 0; max-width: none; }
+    .frmi-body figure.wide {
+      width: min(100vw - 2rem, 58rem);
+      margin-left: max(-6rem, calc(50% - 29rem));
+      margin-right: max(-6rem, calc(50% - 29rem));
+    }
+    @media (max-width: 900px) {
+      .frmi-body figure.wide { width: 100%; margin-left: 0; margin-right: 0; }
+    }
+    .frmi-body figure img,
+    .frmi-body figure video {
+      width: 100%;
+      display: block;
+      border: 1px solid var(--rule);
+      background: rgba(20, 12, 6, 0.08);
+    }
+    .frmi-body figcaption,
+    .frmi-body .galcap {
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: var(--ink-faint);
+      margin-top: 0.65rem;
+    }
+    .frmi-body .callout {
+      margin: 1.5rem 0;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--sepia);
+      background: linear-gradient(175deg, var(--panel-fill) 0%, var(--panel-fill-b) 100%);
+    }
+    .frmi-body .callout h3 {
+      font-family: var(--font-heading);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      margin: 0 0 0.55rem;
+    }
+    .frmi-body .callout p:last-child { margin-bottom: 0; }
+    .frmi-body .tablewrap {
+      overflow-x: auto;
+      margin: 1.25rem 0;
+      border: 1px solid var(--rule);
+      -webkit-overflow-scrolling: touch;
+    }
+    .frmi-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      font-family: inherit;
+      margin: 0;
+      background: transparent;
+    }
+    .frmi-body th, .frmi-body td {
+      text-align: left;
+      padding: 0.55rem 0.65rem;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+      color: var(--ink-soft);
+    }
+    .frmi-body th {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: rgba(92, 64, 48, 0.06);
+    }
+    .frmi-body tr:last-child td { border-bottom: none; }
+    .frmi-body td.n, .frmi-body .mono {
+      font-family: inherit;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .frmi-body .win { color: var(--accent); font-weight: 700; }
+    .frmi-body .pairs {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin: 1.25rem 0;
+    }
+    .frmi-body .pair { margin: 0; }
+    .frmi-body .pair .three {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      overflow: hidden;
+    }
+    .frmi-body .pair img {
+      width: 100%;
+      display: block;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border: 0;
+    }
+    .frmi-body .pair span {
+      font-family: var(--font-heading);
+      font-size: 0.82rem;
+      color: var(--ink-faint);
+      display: block;
+      margin-top: 0.4rem;
+      line-height: 1.4;
+    }
+    .frmi-body .cortex-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.65rem;
+      margin: 0;
+    }
+    .frmi-body .cortex-row img {
+      width: 100%;
+      border: 1px solid var(--rule);
+      display: block;
+    }
+    .frmi-body .bars {
+      margin: 1.35rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      font-family: var(--font-heading);
+    }
+    .frmi-body .bar {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr 3.2rem;
+      gap: 0.65rem;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .frmi-body .bar .lab { text-align: right; color: var(--ink-soft); }
+    .frmi-body .bar.hero .lab { color: var(--ink); font-weight: 700; }
+    .frmi-body .bar .track {
+      height: 0.85rem;
+      background: rgba(92, 64, 48, 0.12);
+      overflow: hidden;
+    }
+    .frmi-body .bar .fill { height: 100%; background: var(--sepia); }
+    .frmi-body .bar.hero .fill { background: var(--accent); }
+    .frmi-body .bar .val {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.88rem;
+      color: var(--ink);
+    }
+    .frmi-body .refs {
+      padding-left: 1.25rem;
+      margin: 1.25rem 0;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+    .frmi-body .refs li { margin-bottom: 0.9rem; }
+    .frmi-body .refs.plain { list-style: none; padding-left: 0; }
+    .frmi-body .refs .cite { color: var(--ink-soft); display: block; }
+    .frmi-body .refs .note {
+      display: block;
+      color: var(--ink-faint);
+      font-size: 0.85rem;
+      margin-top: 0.2rem;
+    }
+    .frmi-body footer.col {
+      margin-top: 2rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--rule);
+      font-size: 0.9rem;
+      color: var(--ink-faint);
+    }
+    .frmi-body footer.col strong { color: var(--ink); }
+    @media (max-width: 640px) {
+      .frmi-body .cortex-row { grid-template-columns: repeat(2, 1fr); }
+      .frmi-body .bar { grid-template-columns: 5.5rem 1fr 2.8rem; gap: 0.45rem; }
+      .frmi-body .pairs { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-grain" aria-hidden="true"></div>
+    <div class="page-inner">
+      <header class="site-header">
+        <div class="brand">
+          <a href="index.html">
+            <p class="brand-title">The Latent Archive</p>
+          </a>
+          <span class="brand-mark" aria-hidden="true"></span>
+          <p class="brand-tag">Notes from the margins</p>
+        </div>
+        <nav class="nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="notes.html">Notes</a>
+          <a href="research.html">Research</a>
+          <a href="about.html">About</a>
+        </nav>
+      </header>
+
+      <article class="article-header">
+        <p class="article-kicker">Research · fMRI</p>
+        <h1 class="article-title">I Wanted to Watch a Dream</h1>
+        <p class="article-meta">A build log, an explanation, and one experiment I nearly did not run</p>
+      </article>
+
+      <div class="article-hero">
+        <img src="assets/images/img-frmi-hero.png" alt="" />
+      </div>
+
+      <div class="article-body frmi-body">
+<header class="col">
+  <p class="kicker">Notes from a weekend that got out of hand</p>
+  <h1>I wanted to watch a dream</h1>
+  <p class="standfirst">I read a paper claiming you could reconstruct someone's dreams from a
+  brain scanner and turn them into video. I wanted that to be real badly enough to go and check.
+  This is what I found, what I built instead, and the result that made me stop and question the
+  whole thing.</p>
+  <p class="byline">A build log, an explanation, and one experiment I nearly did not run.</p>
+</header>
+
+<section class="col">
+  <h2>It started with a paper about dreams</h2>
+  <p>The paper is called <a href="https://arxiv.org/abs/2501.09350"><em>Making Your Dreams A Reality</em></a>. The pitch is exactly what it
+  sounds like: put someone in an MRI scanner while they sleep, decode what they were dreaming,
+  and assemble it into a video story. It went up in January 2025, marked as work in progress.</p>
+  <p>I went looking for the code. There is none. No data either. The links that would point to
+  the supporting material point at material that was never published. As far as I can tell the
+  paper has not been updated since.</p>
+  <p>So I read it properly instead, and this is the part that genuinely surprised me.</p>
+
+  <div class="callout">
+    <h3>There is no dream model</h3>
+    <p>I had assumed the hard part was some special network trained on sleeping brains. There
+    isn't one. The dream stage takes an existing model, already trained on people who were
+    <em>awake and looking at pictures</em>, and simply runs it on sleep scans instead.</p>
+    <p>Nothing is retrained. No dream specific weights exist. The only thing the authors have
+    that I do not is their own recordings of sleeping people.</p>
+  </div>
+
+  <p>That reframed the whole thing for me. There was no missing model to hunt down. The pipeline
+  I would need for dreams is the same pipeline that works on waking eyes, and that pipeline is
+  public.</p>
+  <p>Which meant the sensible first move was not to chase dreams at all. It was to get the
+  ordinary version working end to end, on data where I could actually check the answer, because
+  with a sleeping person there is nothing to check against except what they mumble when you wake
+  them up.</p>
+  <p>So that is what this is. The boring first step, taken carefully.</p>
+</section>
+
+<section class="col">
+  <p>The short version: it works better than I expected, it was slower than it should have been
+  for a reason I could not see, and the most important thing I learned was not that the
+  reconstruction is good. It is that the model has no way of telling you when it is making
+  things up.</p>
+  <p>Let me start with the pictures, because that is what pulled me in.</p>
+</section>
+
+<figure class="wide">
+  <img src="frmi/assets/img/result-grid.jpg" alt="A grid of image pairs. In each pair, the left image is a photograph and the right image is a reconstruction of it built from brain activity.">
+  <figcaption>Every pair here is a photograph on the left and, on the right, a picture rebuilt
+  purely from the brain activity of a person looking at that photograph. Giraffes, a horse, a
+  zebra, a surfer, a stop sign with readable letters on it. The model never saw the photographs.</figcaption>
+</figure>
+
+<section class="col">
+  <p>That is not a trick of selection. Those are the first twelve trials in the file, in order,
+  with nothing thrown away.</p>
+</section>
+
+<section class="col">
+  <h2>What I actually downloaded</h2>
+  <p>The model is called <a href="https://arxiv.org/abs/2403.18211">NeuroPictor</a>. It is published research with public weights, which is the
+  only reason any of this was possible on my own machine. Two files came down:</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>File</th><th>Size</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">checkpoint_120000.pth</td><td class="n">7.32 GB</td><td>a network trained to compress brain scans</td></tr>
+      <tr><td class="mono">epoch_015.pth</td><td class="n">7.93 GB</td><td>the part that turns those compressed scans into pictures</td></tr>
+    </tbody>
+  </table></div>
+  <p>Fifteen gigabytes sounds enormous, and it is, but a lot of the first file is training
+  leftovers. Once loaded, the piece that actually reads brains is about 1.14 GB of numbers. I
+  will come back to why that matters.</p>
+  <p>One thing worth being clear about, because it shapes everything else: <strong>the model is
+  tuned to one specific person.</strong> The file path literally says <code>sub01</code>. It
+  learned one individual's brain. Brains differ enough that this is a real limit, not a footnote.</p>
+</section>
+
+<section class="band">
+  <div class="col">
+    <h2>The part where nothing worked</h2>
+    <p>My first run was painfully slow. Each step of image generation took about
+    <strong>7.5 seconds</strong>, and each picture needs fifty steps. That is six minutes per
+    image. Something was clearly wrong, because this card should chew through that.</p>
+    <p>My first guess was the obvious one. Part of the model must be running on the processor
+    instead of the graphics card. That is the classic cause, it happens constantly, and it is
+    easy to check.</p>
+    <p>So I checked. Every single piece was on the graphics card. Not one stray number anywhere
+    else. I counted them.</p>
+  </div>
+
+  <div class="callout">
+    <h3>The thing that fooled me</h3>
+    <p>I also ran the standard tool for watching a graphics card, <code>nvidia-smi</code>, while
+    it was crawling. It reported 7945 MB of 8188 MB in use and 100% utilisation.</p>
+    <p>That reads as a perfectly healthy, perfectly busy card. It is exactly what a fast run
+    looks like. The tool cannot see this problem at all.</p>
+  </div>
+
+  <div class="col">
+    <p>Here is what was really going on. The model's numbers, at full precision, take
+    <strong>7.38 GB</strong>. My card has <strong>8.00 GB</strong>. So before generating a single
+    pixel, the card was 92% full.</p>
+    <p>Then image generation does something that doubles the working space, and the real peak
+    demand came to <strong>10.46 GB</strong>. More than the card physically has.</p>
+    <p>On Windows the graphics driver does not complain when you overrun. It quietly spills the
+    excess into ordinary system memory and keeps going. Every single step then has to drag those
+    numbers back across the slow connection between the card and the rest of the computer. The
+    card really is 100% busy. It is busy waiting.</p>
+    <p>The fix was one line: store the numbers at half precision. Same model, half the space.</p>
+
+    <div class="tablewrap"><table>
+      <thead><tr><th></th><th>Full precision</th><th>Half precision</th></tr></thead>
+      <tbody>
+        <tr><td>Space the model needs</td><td class="n">7.38 GB</td><td class="n">3.69 GB</td></tr>
+        <tr><td>Peak demand</td><td class="n">10.46 GB</td><td class="n">4.61 GB</td></tr>
+        <tr><td>Time per step</td><td class="n">7.46 s</td><td class="n win">0.18 s</td></tr>
+      </tbody>
+    </table></div>
+
+    <p>About forty times faster. Twelve images went from over an hour to
+    <strong>one minute fifty four seconds</strong>. The pictures look the same. Nothing was lost
+    except the waiting.</p>
+    <p>The lesson I actually took from this: the tool everyone reaches for to diagnose a slow
+    graphics card is blind to one of the most common ways a graphics card gets slow. The number
+    that would have told me immediately is how much memory the program <em>asked</em> for, not
+    how much the card reports using. Those are different questions.</p>
+  </div>
+</section>
+
+<section class="col">
+  <h2>What a brain scan actually looks like going in</h2>
+  <p>I had a mental picture of feeding in something that looks like a brain. A slice, a scan, the
+  thing you see in a hospital. That is not what happens at all.</p>
+</section>
+
+<figure class="wide">
+  <div class="cortex-row">
+    <img src="frmi/assets/img/cortex/cortex-01.jpg" alt="A flattened map of visual cortex, shown as two wing shapes in red and blue.">
+    <img src="frmi/assets/img/cortex/cortex-03.jpg" alt="Another flattened cortex map.">
+    <img src="frmi/assets/img/cortex/cortex-05.jpg" alt="Another flattened cortex map.">
+    <img src="frmi/assets/img/cortex/cortex-08.jpg" alt="Another flattened cortex map.">
+  </div>
+  <figcaption>Four of the actual inputs. Red is more activity than usual, blue is less, grey is
+  everything outside the region we care about. Each of these produced one of the pictures above.</figcaption>
+</figure>
+
+<section class="col">
+  <p>The outer layer of your brain is a crumpled sheet. If you take that sheet and flatten it
+  out, like peeling an orange in one piece and pressing it down, you get a two dimensional map.
+  These are the two halves of that map, cropped down to the visual part at the back of the head.
+  People call the shape a butterfly and once you see it you cannot unsee it.</p>
+  <p>By the time it reaches the model it is a <code>256 x 256</code> grid of numbers.
+  <strong>52.5% of it is exactly zero</strong>, because that is everything outside the visual
+  region, masked out. The rest are scores saying how far above or below normal that spot was,
+  running roughly between minus 2.4 and plus 2.5.</p>
+  <p>Getting from a raw scanner file to this involves hours of processing with specialist
+  neuroimaging software. The data I used was already through that pipeline. This turns out to be
+  the single biggest practical obstacle to trying this on any new brain data, and I will come
+  back to it at the end.</p>
+</section>
+
+<section class="col">
+  <h2>How the picture actually gets made</h2>
+  <p>This was the part I most wanted to understand, and my first mental model of it was wrong in
+  a way that is worth spelling out.</p>
+  <p>I assumed it worked like a translator: brain goes in one end, picture comes out the other,
+  the way a compression program turns a file into an image. Encoder, then decoder.</p>
+  <p>It does not work like that at all, and the difference is the whole trick.</p>
+  <p>Here is what actually happens, in plain steps.</p>
+
+  <h3>Step one: the scan gets summarised</h3>
+  <p>The flattened cortex map goes into a network that boils it down. What comes out the other
+  side is not a small picture. It is a set of numbers that means something closer to a
+  description: this scan has these characteristics, this much of this kind of activity, arranged
+  this way.</p>
+  <p>Think of it like someone watching a film and writing notes, rather than someone making a
+  smaller copy of the film. The notes are not a film. You cannot watch them. But if you handed
+  them to a good enough artist, they could paint the scene.</p>
+  <p>Concretely, if you like numbers: a 256 by 256 grid of brain activity goes in, and 77 rows
+  of 1024 numbers come out. Those 78,848 numbers are the notes. Everything after this point is
+  working from them and never looks at the brain again.</p>
+
+  <h3>Step two: a picture gets grown from static</h3>
+  <p>This is the part that broke my mental model. Nobody ever converts the brain summary into
+  an image.</p>
+  <p>Instead the system starts with a rectangle of pure random static, the kind of noise an
+  untuned television used to show. Then it cleans it up, slightly, fifty times over. Each pass
+  removes a little randomness and commits a little more to being a real scene. Fifty passes
+  later there is a photograph where the static used to be.</p>
+  <p>The brain summary never becomes the picture. It sits beside the process and votes, at every
+  one of those fifty passes, on which way the cleanup should go. Nudging it toward a giraffe and
+  away from everything else, over and over, until a giraffe is what is left.</p>
+  <p>If that sounds familiar, it should. It is exactly how the image generators everyone has
+  been using for the last few years work. Normally the thing doing the voting is a sentence you
+  typed. Here it is somebody's visual cortex. Same machine, different hand on the wheel.</p>
+
+  <h3>Step three: two votes, not one</h3>
+  <p>The summary does not steer through a single channel. It splits into two, and this is why
+  the results are as good as they are.</p>
+  <p>One channel carries roughly <em>what is in the scene</em>. There is a giraffe here. The
+  other carries roughly <em>how the scene is arranged</em>. The tall thing is left of centre,
+  the ground is bright, the background falls away.</p>
+  <p>You need both, and it is easy to see why once you imagine having only one. Meaning without
+  layout gives you a giraffe, but floating in some generic giraffe setting that has nothing to
+  do with what the person saw. Layout without meaning gives you a picture with the right shapes
+  in the right places and no idea what any of them are, a giraffe-shaped smudge in a
+  field-shaped smudge.</p>
+</section>
+
+<figure class="wide">
+  <img src="frmi/assets/img/neuropictor/pipeline.jpg" alt="NeuroPictor architecture diagram. On the left, an fMRI encoder and decoder trained to reconstruct brain scans. On the right, the middle representation feeding a high-level guiding network and a low-level manipulation network, both steering Stable Diffusion.">
+  <figcaption>The authors' own diagram of the system, which is worth sitting with for a minute.
+  The blue box on the left is the brain compressor: scan in, squeeze to a summary, expand back
+  out to a scan. That orange bar in the middle, the summary, is the only part that survives into
+  the right hand side. The green box is where the picture gets made, with the summary steering
+  Stable Diffusion down two separate paths. The dashed yellow box only exists during training.
+  <br><br>Figure from Huo et al., <a href="#ref-neuropictor">NeuroPictor</a>.</figcaption>
+</figure>
+
+<section class="col">
+  <p>Notice the <strong>fMRI Decoder</strong> in the bottom left of that diagram. That is the
+  half I mentioned getting deleted. It exists so the system can be trained: you can check whether
+  the summary is any good by seeing if you can rebuild the original scan from it. Once training
+  is over, nobody wants scans back, so it is dropped and only the encoder is kept.</p>
+  <p>The important move is in the middle. The image is not <em>extracted</em> from the brain
+  data. It is <em>grown from random noise</em>, and the brain data is used at every step to steer
+  which direction the noise gets cleaned up in.</p>
+  <p>That is what an image generator does normally, except normally the steering comes from a
+  sentence you typed. Here the steering comes from a brain. Same machine, different steering
+  wheel.</p>
+  <p>And the steering happens on two channels at once, which is why the results are as good as
+  they are. One channel carries meaning, roughly "there is a giraffe in this". The other carries
+  layout, roughly "and the tall thing is over on the left". Meaning alone would give you a
+  giraffe in the wrong place. Layout alone would give you a giraffe shaped smudge.</p>
+</section>
+
+<figure class="wide">
+  <img src="frmi/assets/img/neuropictor/switch.jpg" alt="Two groups of image triplets. In each, a high-level source and a low-level source from different brain scans are combined, producing an image with the subject of one and the pose and setting of the other.">
+  <figcaption>This is the proof that the two channels really are separate things, and it is my
+  favourite figure in the paper. In each group they take the meaning signal from one person's
+  brain scan and the layout signal from a different one, then combine them. Top left: meaning
+  from the zebra reading, layout from the horse reading, and out comes a zebra standing in the
+  horse's pose in the horse's field. Bottom left: the same two swapped, so a horse turns up in
+  the zebra's stance. On the right they do it with a baseball pitcher.
+  <br><br>Figure from Huo et al., <a href="#ref-neuropictor">NeuroPictor</a>.</figcaption>
+</figure>
+
+<section class="col">
+  <p>So "there is a zebra in this" and "the animal is standing side on in the middle of a field"
+  really are carried on different wires, and you can cross them.</p>
+  <p>Here is the detail that finally made it click for me. That 7.32 GB file I downloaded
+  contains a full system for compressing brain scans <em>and</em> reconstructing them. When the
+  code loads it, it immediately deletes the reconstructing half. It is thrown away on purpose.
+  Nobody wants the brain scan back. They only want the summary in the middle, because that
+  summary is what steers the picture. That is why 7.32 GB collapses to 1.14 GB once loaded.</p>
+</section>
+
+
+<section class="col">
+  <h2>All twelve, with the machine's own words</h2>
+  <p>Once the pictures existed I wanted labels for them, so I had Gemini look at each decoded
+  picture and describe it. Worth stressing: it only ever saw the reconstruction. It never saw
+  the original photograph.</p>
+  <p>The order it described them in came out matching the true order of the photographs, all
+  twelve. I did not plan that as a test, but it is one.</p>
+</section>
+
+<div class="wrap-wide">
+  <div class="pairs">
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-01.jpg" alt="Flattened cortex map, trial 1" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-01.jpg" alt="Decoded picture, trial 1" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-01.jpg" alt="Photograph shown, trial 1" loading="lazy">
+      </div>
+      <span>A giraffe strides through a lush green field surrounded by scattered trees under soft daylight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-02.jpg" alt="Flattened cortex map, trial 2" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-02.jpg" alt="Decoded picture, trial 2" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-02.jpg" alt="Photograph shown, trial 2" loading="lazy">
+      </div>
+      <span>A reticulated giraffe stands in profile on a green lawn near large trees under soft, natural daylight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-03.jpg" alt="Flattened cortex map, trial 3" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-03.jpg" alt="Decoded picture, trial 3" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-03.jpg" alt="Photograph shown, trial 3" loading="lazy">
+      </div>
+      <span>A brown horse with a white blaze walks forward across a grassy field under soft, overcast daylight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-04.jpg" alt="Flattened cortex map, trial 4" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-04.jpg" alt="Decoded picture, trial 4" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-04.jpg" alt="Photograph shown, trial 4" loading="lazy">
+      </div>
+      <span>A frosty red stop sign mounted on a wooden utility pole stands beneath a bright blue daytime sky in clear sunlight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-05.jpg" alt="Flattened cortex map, trial 5" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-05.jpg" alt="Decoded picture, trial 5" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-05.jpg" alt="Photograph shown, trial 5" loading="lazy">
+      </div>
+      <span>A zebra lowers its black and white head to graze among dry grass in a green field under soft daylight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-06.jpg" alt="Flattened cortex map, trial 6" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-06.jpg" alt="Decoded picture, trial 6" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-06.jpg" alt="Photograph shown, trial 6" loading="lazy">
+      </div>
+      <span>A silhouetted surfer holds a surfboard while balancing in turbulent, foamy ocean waters under bright, cool blue daylight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-07.jpg" alt="Flattened cortex map, trial 7" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-07.jpg" alt="Decoded picture, trial 7" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-07.jpg" alt="Photograph shown, trial 7" loading="lazy">
+      </div>
+      <span>A reticulated giraffe bends its long neck downward in a lush green forest illuminated by bright natural daylight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-08.jpg" alt="Flattened cortex map, trial 8" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-08.jpg" alt="Decoded picture, trial 8" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-08.jpg" alt="Photograph shown, trial 8" loading="lazy">
+      </div>
+      <span>A baseball pitcher in a white uniform cocks his arm to throw from a dirt mound on a brightly lit green field.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-09.jpg" alt="Flattened cortex map, trial 9" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-09.jpg" alt="Decoded picture, trial 9" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-09.jpg" alt="Photograph shown, trial 9" loading="lazy">
+      </div>
+      <span>A brown and white dog looks up happily while standing on bright green grass illuminated by natural daylight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-10.jpg" alt="Flattened cortex map, trial 10" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-10.jpg" alt="Decoded picture, trial 10" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-10.jpg" alt="Photograph shown, trial 10" loading="lazy">
+      </div>
+      <span>A dark-patterned giraffe stands in a grassy green savanna filled with scattered bushes under an overcast sky with soft daylight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-11.jpg" alt="Flattened cortex map, trial 11" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-11.jpg" alt="Decoded picture, trial 11" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-11.jpg" alt="Photograph shown, trial 11" loading="lazy">
+      </div>
+      <span>A brown and white patterned giraffe looks to the side in profile against bright green foliage under warm sunlight.</span>
+    </figure>
+    <figure class="pair">
+      <div class="three">
+        <img src="frmi/assets/img/cortex/cortex-12.jpg" alt="Flattened cortex map, trial 12" loading="lazy">
+        <img src="frmi/assets/img/pairs/decoded-12.jpg" alt="Decoded picture, trial 12" loading="lazy">
+        <img src="frmi/assets/img/pairs/actual-12.jpg" alt="Photograph shown, trial 12" loading="lazy">
+      </div>
+      <span>A female tennis player wearing a yellow visor swings her racket toward a bright yellow ball against a green background in daylight.</span>
+    </figure>
+  </div>
+  <p class="galcap">Left to right in each group: the flattened brain scan, the picture decoded
+  from it, and the photograph the person was actually looking at. The caption underneath is what
+  Gemini said about the middle image alone.</p>
+</div>
+
+<section class="col">
+  <h2>Making it move</h2>
+  <p>Twelve still pictures is a nice result but a strange artifact. The obvious next thought was
+  to make it continuous. Not a slideshow, an actual moving world you could fall into.</p>
+  <p>There is a class of model for this now, called a world model. You give it a starting image
+  and a description, and it generates video continuously, reacting to instructions while it runs.
+  I used one called Helios through a service called <a href="https://www.reactor.inc">Reactor</a>.</p>
+  <p>The idea: feed each decoded brain image in as a steering signal, one after another, in a
+  single unbroken session. The world never restarts, so lighting and camera and scene carry
+  across each change instead of cutting.</p>
+  <p>To bridge between images I had Gemini write transitions. Not descriptions of each scene,
+  which would be useless, but descriptions of the <em>change</em>. So instead of "a stop sign",
+  it writes:</p>
+  <div class="callout" style="border-left-color:var(--cold)">
+    <p style="font-style:italic">"The horse's vertical white blaze expands and hardens into an
+    octagonal metal face, while its chestnut legs meld into a frosty wooden pole under a suddenly
+    blue sky."</p>
+  </div>
+  <p>That is the difference between a cut and a morph, and it is the whole reason the video holds
+  together.</p>
+</section>
+
+<figure class="wide">
+  <video controls preload="metadata" playsinline poster="frmi/assets/img/world-still.jpg" src="frmi/assets/video/world-only.mp4"></video>
+  <figcaption>The generated world on its own. Forty six seconds, one continuous take, twelve
+  scene changes, each one steered by a picture decoded from a brain.</figcaption>
+</figure>
+
+<section class="col">
+  <h2>Two detours that cost me an afternoon</h2>
+  <p>Neither of these is deep, but both are the kind of thing nobody writes down, so here they
+  are.</p>
+  <p><strong>The first model I picked could not do the job.</strong> I chose it from its
+  description, which promised image based steering. When I actually asked the service what
+  commands it accepts, it had five, and not one of them took an image. Its own documentation
+  said the video does not even travel through the service you connect to. I had built against a
+  thing that did not exist. Reading the machine readable list of commands took thirty seconds and
+  would have saved the whole detour.</p>
+  <p><strong>The second model was simply broken.</strong> It connected, reported itself ready,
+  then died about twenty four seconds later, every time, four times running. I proved it was not
+  me by connecting to two other models on the same service from the same laptop, both of which
+  held a connection happily for over a minute. That comparison is the only reason I stopped
+  debugging my own code.</p>
+  <p>Helios, the one I ended up with, turned out to be better anyway, because it lets you replace
+  the steering image <em>while it is generating</em>. That is what makes all twelve brain images
+  drive the video rather than just the first one.</p>
+</section>
+
+<section class="col">
+  <h2>The timing bug that ate a scene</h2>
+  <p>My first video was twenty five seconds with twelve scenes, so I switched scenes every 2.08
+  seconds on a timer. It looked mushy and the last scene never appeared at all.</p>
+  <p>The model does not generate video smoothly. It generates in blocks, and a block takes about
+  <strong>2.06 seconds</strong>. An instruction can only take effect at a block boundary.</p>
+  <p>So my scenes were 2.08 seconds and the blocks were 2.06 seconds. Every scene got roughly one
+  block, which is not enough to actually render a transformation, and the small mismatch meant
+  the changes slid further out of step as it went. The final scene ran out of video before it
+  ever got a block.</p>
+  <p>The fix was to stop using a timer. The model announces every time it finishes a block, so I
+  waited for those announcements and changed scene every second one. Now each scene gets two full
+  blocks and nothing drifts, because I am no longer guessing at a clock I cannot see.</p>
+  <p>The model also reports which instruction drove each block, so afterwards I could check
+  rather than assume. Twenty four blocks, two per scene, all twelve scenes present.</p>
+</section>
+
+<figure class="wide">
+  <video controls preload="metadata" playsinline src="frmi/assets/video/four-panel.mp4"></video>
+  <figcaption>The same run with its evidence attached. Top left is the brain scan, below it the
+  picture decoded from that scan, below that the photograph the person was actually shown, and on
+  the right the world being generated from it.</figcaption>
+</figure>
+
+<section class="band">
+  <div class="col">
+    <h2>The part that unsettled me</h2>
+    <p>Somewhere in here I realised I had no way of knowing whether any of it was real.</p>
+    <p>Think about what the generator does. It takes a 256 by 256 grid of numbers and grows a
+    photograph out of noise, steered by those numbers. Nothing in that process can refuse. There
+    is no state it can enter where it says "this input is meaningless". Feed it anything at all
+    and it will hand you a confident, sharp, plausible photograph.</p>
+    <p>Which means a beautiful reconstruction, on its own, proves nothing whatsoever. I could
+    have been looking at the model's imagination the entire time.</p>
+    <p>So I tested it. I made two fake inputs designed to be statistically identical to real brain
+    scans, with the one thing missing being the information:</p>
+    <ul>
+      <li><strong>Noise.</strong> Random numbers with the same average and spread as real scans,
+      with the same regions blanked out.</li>
+      <li><strong>Shuffled.</strong> Real brain scans with the values scrambled to random
+      positions. Exactly the same numbers, in the wrong places.</li>
+    </ul>
+    <p>Then I ran them through the identical pipeline and looked.</p>
+  </div>
+</section>
+
+<figure class="wide">
+  <img src="frmi/assets/img/control-compare.jpg" alt="Four rows of six images. Row one, photographs. Row two, decoded from real brain scans, closely matching row one. Rows three and four, decoded from scrambled and random input, showing unrelated but realistic scenes.">
+  <figcaption>Same six trials in every row. Top: what the person saw. Second: decoded from their
+  real brain activity. Third: from scrambled brain data. Bottom: from pure noise. Look at the
+  bottom two rows. Sharp, believable, professionally lit, and completely unrelated to anything
+  anyone was looking at.</figcaption>
+</figure>
+
+<section class="col">
+  <p>A man sitting on a bench. Red horses. Elephants in a factory yard. Bears on logs. Every one
+  of them a convincing photograph. Every one of them invented.</p>
+  <p>That is the thing I would want anyone to take away from this. Not the giraffes. This.</p>
+  <p>To put a number on it, I measured how similar each decoded picture was to the photograph the
+  person actually saw, using a standard image comparison model so my own judgement stayed out of
+  it. Higher means more similar.</p>
+
+  <div class="bars">
+    <div class="bar hero"><div class="lab">Real brain data</div><div class="track"><div class="fill" style="width:76.1%"></div></div><div class="val">0.761</div></div>
+    <div class="bar"><div class="lab">Chance floor</div><div class="track"><div class="fill" style="width:45.0%"></div></div><div class="val">0.450</div></div>
+    <div class="bar"><div class="lab">Pure noise</div><div class="track"><div class="fill" style="width:28.7%"></div></div><div class="val">0.287</div></div>
+    <div class="bar"><div class="lab">Scrambled</div><div class="track"><div class="fill" style="width:27.1%"></div></div><div class="val">0.271</div></div>
+  </div>
+
+  <p>The chance floor is the row that matters most. That is real decoded pictures scored against
+  the <em>wrong</em> photographs. It answers the sneaky objection: maybe the model just always
+  draws animals in fields, and any animal picture will score well against any other.</p>
+  <p>Real pictures beat that floor by <strong>0.311</strong>. So the reconstructions carry
+  information about <em>which particular photograph</em> produced them, not just a general
+  fondness for wildlife.</p>
+  <p>And scrambled scoring the same as pure noise tells you something specific about how the
+  model reads brains. If position did not matter, scrambling would be harmless. Scrambling
+  destroys it completely. The model is reading <em>where</em> in the cortex the activity is, not
+  just how much there is.</p>
+</section>
+
+<section class="col">
+  <h2>What this does and does not show</h2>
+  <p>I want to be careful here, because this is the exact point where writeups usually get
+  carried away, mine included if I am not watching.</p>
+
+  <div class="tablewrap wide"><table>
+    <thead><tr><th>Claim</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>You can reconstruct roughly what someone is looking at from their visual cortex</td><td>Established by the original research. I only reproduced it.</td></tr>
+      <tr><td>These particular reconstructions carry image specific information</td><td>Measured here. 0.761 against a 0.450 floor, twelve trials.</td></tr>
+      <tr><td>The decoder reads spatial pattern, not overall activity level</td><td>Supported. Scrambling the same values destroys the result.</td></tr>
+      <tr><td>Decoded pictures can steer a world model into a coherent take</td><td>Shown, but "coherent" is my eyes, not a measurement.</td></tr>
+      <tr><td>This would work on you</td><td>No evidence at all. One subject, tuned to that subject.</td></tr>
+      <tr><td>This reads dreams, thoughts, or anything private</td><td>No. See below.</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>On that last one, since it is where everybody's mind goes. This person was <strong>awake and
+  looking at photographs</strong>. Reading imagery from sleep is a real research area and a much
+  harder problem, and none of what I did here touches it.</p>
+  <p>There are three more limits worth stating plainly. Twelve trials is a demonstration, not an
+  effect size. The decoder is someone else's published work and I did not train anything. And
+  everything in the video between the decoded frames is invention: only twelve moments are
+  anchored to a brain, the rest is the world model dreaming between them.</p>
+</section>
+
+<section class="col">
+  <h2>How you actually catch a dream</h2>
+  <p>I had never thought about the practical side of this and it turns out to be the most human
+  part of the whole field.</p>
+  <p>You cannot tell from a brain scan alone whether somebody is dreaming, or when. So the 2013
+  study wired people up for <strong>EEG at the same time as the MRI</strong>. EEG reads
+  electrical activity through the scalp, and it is what sleep researchers use to tell which
+  stage of sleep somebody is in. The scanner watches the blood flow, the electrodes watch the
+  brain waves, both at once.</p>
+  <p>Then they waited. When the EEG showed the particular signature of someone dropping into
+  sleep, they woke them up and asked what they had just been seeing. The person described it out
+  loud, went back to sleep, and it happened again. And again.</p>
+  <p>They did this <strong>at least 200 times per person</strong>, for two people. Picture being
+  woken two hundred times to be asked what you were just dreaming about. That is the dataset.</p>
+
+  <h3>Turning mumbling into data</h3>
+  <p>A half-asleep verbal report is not something you can score a model against. So the reports
+  were broken into the words describing visible things, and each of those was matched to an
+  entry in a dictionary of concepts. Only concepts that came up in at least ten reports were
+  kept, which left <strong>26 for the first subject and 16 for the second</strong>.</p>
+  <p>That is why I said the labels are single words. The ground truth for a given awakening is
+  not a sentence. It is a checklist: was there a car in this one, was there a person, was there
+  a building.</p>
+
+  <h3>Why a decoder trained on open eyes should work on a dream at all</h3>
+  <p>This is the bet the whole field rests on, and it deserves stating plainly, because it is
+  not obvious.</p>
+  <p>The decoder I ran learned from someone <em>looking</em> at photographs. A dream involves no
+  photograph and no light entering the eye. So why would the same decoder read anything at all
+  from a sleeping brain?</p>
+  <p>The claim is that your visual cortex does not care much where the picture came from. Seeing
+  a car and vividly imagining a car light up overlapping patterns, because in both cases your
+  brain is representing "car". If that holds, a decoder that learned to read those patterns from
+  perception can read them from imagination too.</p>
+  <p>The 2013 study found real support for this, with an important catch. Decoders built on the
+  <em>higher</em> visual areas, the ones that deal in objects and categories, predicted dream
+  content well. Decoders built on the <em>lower</em> visual areas, the ones dealing in edges,
+  orientations and raw texture, did much worse.</p>
+
+  <div class="callout">
+    <h3>What that would mean for this pipeline</h3>
+    <p>This is my reasoning rather than anything the study says, but it follows fairly directly
+    and it changed what I would expect.</p>
+    <p>Remember the two channels: one carrying <em>what is in the scene</em>, one carrying
+    <em>how it is arranged</em>. Those map roughly onto higher and lower visual areas. And it is
+    the lower areas that go quiet in dreams.</p>
+    <p>So a dream reconstruction through this pipeline would probably get the subject roughly
+    right and the composition mostly wrong. Recognisably a car, in a place and a pose that owes
+    more to the generator's imagination than to the dreamer's. Half the steering wheel, working.</p>
+  </div>
+</section>
+
+<section class="col">
+  <h2>So, the dreams</h2>
+  <p>Having got the waking version working, the dream version is in principle just a matter of
+  different input. Same model, same pipeline, sleep scans instead of waking ones. That is the
+  whole trick the paper describes.</p>
+  <p>Two things stand in the way, and neither is the modelling.</p>
+  <p><strong>The data has gone missing.</strong> The best known public sleep imaging dataset is
+  from <a href="https://doi.org/10.1126/science.1234330">a 2013 study</a>, and it is cited everywhere as openly available. Every paper and code
+  repository points at the same download link. That link now returns a 404, and the site that
+  hosted it serves a default web server placeholder page. The whole archive appears to be gone.
+  The data may survive somewhere. It is not where anybody says it is.</p>
+  <p><strong>And dreams are not what I pictured.</strong> That 2013 study did not catch people in
+  deep, cinematic REM dreams. It woke them in the first minutes of falling asleep, when you get
+  those short drifting fragments rather than stories. The labels are not descriptions either.
+  They are single words, closer to "was there a car in it" than "I was skiing down a mountain".</p>
+  <p>So even done perfectly, the honest output would be a handful of disconnected fragments, not
+  a dream you could sit and watch. Worth knowing before falling in love with the idea, which I
+  had already done.</p>
+  <p>There is one more thing worth saying about the original paper. Its actual quantitative
+  result rests on three clean dream instances, and of the three reported
+  significance values, one does not clear the usual bar. That is not a criticism of the authors,
+  who are working with genuinely scarce data. It is a caution about how much weight the headline
+  can carry. The bottleneck in this field is not scanners or models. It is that people mostly do
+  not remember their dreams.</p>
+</section>
+
+<section class="col">
+  <h2>What I would do next</h2>
+  <p>Suppose the sleep data turned up tomorrow, in full. There is still a wall in the way, and it
+  is not the modelling.</p>
+  <p>The input to all of this is not just "a brain scan". It is a flattened cortical surface,
+  cropped to one specific region, laid out in a coordinate system built from a standard human
+  brain template. A raw scanner file looks nothing like it.</p>
+  <p>Getting new data into that form needs specialist neuroimaging software and, by the
+  documentation's own estimate, potentially a day or two of processing per subject. That is the
+  real wall, not the modelling.</p>
+  <p>If I pick this up again, the first thing I will build is not a bigger pipeline. It is the
+  noise test, run first, before anything else. Because on this kind of model, until you know what
+  nothing looks like, you cannot tell whether you are looking at something.</p>
+</section>
+
+<section class="col">
+  <h2>References</h2>
+  <ol class="refs">
+  <li id="ref-dream"><span class="cite">Fu, Y., Gao, J., Yang, B., &amp; Feng, J. (2025). <em>Making Your Dreams A Reality: Decoding the Dreams into a Coherent Video Story from fMRI Signals.</em></span> <a href="https://arxiv.org/abs/2501.09350">arXiv:2501.09350</a><span class="note">The paper that started this. Marked work in progress. No code or data released.</span></li>
+  <li id="ref-neuropictor"><span class="cite">Huo, J., Wang, Y., Qian, X., Wang, Y., Li, C., Feng, J., &amp; Fu, Y. (2024). <em>NeuroPictor: Refining fMRI-to-Image Reconstruction via Multi-individual Pretraining and Multi-level Modulation.</em></span> <a href="https://arxiv.org/abs/2403.18211">arXiv:2403.18211</a><span class="note">Every reconstruction on this page is theirs. I ran their published weights unmodified and trained nothing.</span></li>
+  <li id="ref-nsd"><span class="cite">Allen, E. J., St-Yves, G., Wu, Y., Breedlove, J. L., Prince, J. S., Dowdle, L. T., Nau, M., Caron, B., Pestilli, F., Charest, I., Hutchinson, J. B., Naselaris, T., &amp; Kay, K. (2022). <em>A massive 7T fMRI dataset to bridge cognitive neuroscience and artificial intelligence.</em> Nature Neuroscience.</span> <a href="https://naturalscenesdataset.org/">naturalscenesdataset.org</a><span class="note">The brain scans and the photographs. Recorded at 7 tesla, which is far stronger than a typical hospital scanner.</span></li>
+  <li id="ref-horikawa"><span class="cite">Horikawa, T., Tamaki, M., Miyawaki, Y., &amp; Kamitani, Y. (2013). <em>Neural Decoding of Visual Imagery During Sleep.</em> Science, 340(6132), 639&ndash;642.</span> <a href="https://doi.org/10.1126/science.1234330">doi:10.1126/science.1234330</a><span class="note">The sleep imaging study. Its analysis code is still on GitHub; the raw data download it points to returned a 404 when I checked in August 2026, and the host now serves a default placeholder page.</span></li>
+  <li id="ref-ldm"><span class="cite">Rombach, R., Blattmann, A., Lorenz, D., Esser, P., &amp; Ommer, B. (2022). <em>High-Resolution Image Synthesis with Latent Diffusion Models.</em></span> <a href="https://arxiv.org/abs/2112.10752">arXiv:2112.10752</a><span class="note">The image generator underneath. The fifty rounds of cleanup described above are its sampling process.</span></li>
+  <li id="ref-controlnet"><span class="cite">Zhang, L., Rao, A., &amp; Agrawala, M. (2023). <em>Adding Conditional Control to Text-to-Image Diffusion Models.</em></span> <a href="https://arxiv.org/abs/2302.05543">arXiv:2302.05543</a><span class="note">How the layout half of the brain signal steers the picture.</span></li>
+  <li id="ref-clip"><span class="cite">Radford, A., et al. (2021). <em>Learning Transferable Visual Models From Natural Language Supervision.</em></span> <a href="https://arxiv.org/abs/2103.00020">arXiv:2103.00020</a><span class="note">The similarity scores in the control section are measured with the OpenCLIP ViT-H-14 implementation of this.</span></li>
+  </ol>
+  <h3 style="margin-top:2rem">Code and weights</h3>
+  <ul class="refs plain">
+  <li><a href="https://github.com/jingyanghuo/neuropictor">jingyanghuo/neuropictor</a><span class="note">The decoder source.</span></li>
+  <li><a href="https://huggingface.co/Fudan-fMRI/neuropictor">Fudan-fMRI/neuropictor</a><span class="note">The 15 GB of weights.</span></li>
+  <li><a href="https://github.com/KamitaniLab/HumanDreamDecoding">KamitaniLab/HumanDreamDecoding</a><span class="note">Analysis code for the sleep study.</span></li>
+  <li><a href="https://github.com/mlfoundations/open_clip">mlfoundations/open_clip</a><span class="note">Used for the similarity measurements.</span></li>
+  <li><a href="https://docs.reactor.inc">docs.reactor.inc</a><span class="note">World model API. Helios is the model used here.</span></li>
+  </ul>
+</section>
+
+<footer class="col">
+  <p><strong>Credits.</strong> Decoding uses <a href="#ref-neuropictor">NeuroPictor</a>, pretrained weights,
+  unmodified, the single subject checkpoint. Brain data is from the <a href="#ref-nsd">Natural Scenes Dataset</a>.
+  Video generation is Reactor's Helios. Captions and transitions are Gemini. Image similarity is
+  OpenCLIP ViT-H-14. Everything ran on one laptop with an RTX 4060.</p>
+  <p style="margin-top:1rem">All numbers on this page come from the runs described. Nothing is
+  estimated.</p>
+</footer>
+
+
+      </div>
+
+      <nav class="article-nav" aria-label="Post navigation">
+        <a href="dhaarini.html">← Dhaarini</a>
+        <a href="index.html">Home</a>
+      </nav>
+
+      <footer class="site-footer">
+        <p>© The Latent Archive · Dhruva Myakeri · 2026</p>
+        <div class="footer-links">
+          <a href="about.html">About</a>
+          <a href="mailto:zapdhruva@gmail.com">Contact</a>
+          <a href="https://github.com/DhruvaMyakeri" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <script src="js/theme.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/carousel.js"></script>
+</body>
+</html>

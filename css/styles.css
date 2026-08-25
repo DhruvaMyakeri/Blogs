@@ -532,6 +532,20 @@ html[data-theme="dark"] .carousel-media {
   background: var(--parchment-edge);
 }
 
+.post-card-media--wide {
+  aspect-ratio: 355 / 211;
+}
+
+.post-card-media--wide img {
+  object-fit: cover;
+  object-position: center center;
+  filter: saturate(0.95) contrast(1.02);
+}
+
+.post-card:hover .post-card-media--wide img {
+  filter: saturate(0.98) contrast(1.05);
+}
+
 .soon-badge {
   position: absolute;
   top: 0.65rem;
@@ -1019,11 +1033,21 @@ html[data-theme="dark"] .carousel-media {
   background: var(--parchment-edge);
 }
 
+.notes-item-thumb--wide {
+  aspect-ratio: 355 / 211;
+  width: 132px;
+}
+
 .notes-item-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   filter: saturate(0.8);
+}
+
+.notes-item-thumb--wide img {
+  object-position: center center;
+  filter: saturate(0.92) contrast(1.02);
 }
 
 .notes-item-title {

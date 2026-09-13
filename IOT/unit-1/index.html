@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IoT · Unit 1 Study Guide</title>
+<style>
+  :root{
+    --paper:#f7f4ee;
+    --ink:#1c2129;
+    --ink-soft:#4a5261;
+    --line:#ddd6c7;
+    --amber:#c9701a;
+    --amber-deep:#9a5313;
+    --teal:#1f7a6c;
+    --card:#ffffff;
+    --navy:#12182a;
+    --navy-soft:#1c2540;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    line-height:1.6;
+  }
+  .trace{
+    position:fixed; inset:0; pointer-events:none; opacity:.05; z-index:0;
+    background-image:
+      linear-gradient(var(--ink) 1px, transparent 1px),
+      linear-gradient(90deg, var(--ink) 1px, transparent 1px);
+    background-size:42px 42px;
+  }
+  header.hero{
+    position:relative; z-index:1;
+    background:linear-gradient(160deg, var(--navy) 0%, var(--navy-soft) 60%, #223059 100%);
+    color:#f2ede1;
+    padding:64px 8vw 56px;
+    overflow:hidden;
+  }
+  header.hero::after{
+    content:"";
+    position:absolute; right:-60px; top:-60px; width:320px; height:320px;
+    border:2px solid rgba(201,112,26,.35);
+    border-radius:50%;
+  }
+  header.hero::before{
+    content:"";
+    position:absolute; right:40px; bottom:-90px; width:220px; height:220px;
+    border:2px solid rgba(31,122,108,.3);
+    border-radius:50%;
+  }
+  .eyebrow{
+    font-family:'Segoe UI',system-ui,sans-serif;
+    letter-spacing:.18em; text-transform:uppercase; font-size:.72rem;
+    color:#e8b98a; margin:0 0 14px;
+  }
+  h1.title{
+    font-family:'Segoe UI',system-ui,sans-serif;
+    font-size:clamp(1.9rem,4vw,3rem); margin:0 0 18px; font-weight:700;
+    max-width:16ch;
+  }
+  .hero p.sub{
+    max-width:60ch; color:#cdd3e0; font-size:1.05rem;
+  }
+  main{
+    position:relative; z-index:1;
+    max-width:980px; margin:0 auto; padding:48px 8vw 90px;
+  }
+  .lede{
+    font-size:1.08rem; color:var(--ink-soft); max-width:70ch; margin-bottom:44px;
+  }
+  .lede strong{color:var(--ink);}
+  .cards{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:22px; margin-bottom:56px;
+  }
+  a.card{
+    display:block; background:var(--card); border:1px solid var(--line);
+    border-radius:10px; padding:26px 24px; text-decoration:none; color:var(--ink);
+    position:relative; transition:transform .15s ease, box-shadow .15s ease;
+    box-shadow:0 1px 2px rgba(20,20,10,.04);
+  }
+  a.card:hover{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(20,20,10,.09); }
+  .card .num{
+    font-family:'Segoe UI',system-ui,sans-serif; font-weight:700; font-size:.78rem;
+    color:var(--amber-deep); letter-spacing:.12em; text-transform:uppercase;
+  }
+  .card h2{
+    font-family:'Segoe UI',system-ui,sans-serif;
+    font-size:1.28rem; margin:8px 0 10px; color:var(--ink);
+  }
+  .card p{ margin:0; color:var(--ink-soft); font-size:.95rem; }
+  .card .source{
+    margin-top:14px; font-family:'Segoe UI',system-ui,sans-serif; font-size:.72rem;
+    color:var(--teal); text-transform:uppercase; letter-spacing:.08em;
+  }
+  .note{
+    border-left:3px solid var(--amber); background:#fff9ef; padding:18px 22px;
+    border-radius:0 8px 8px 0; color:var(--ink-soft); font-size:.97rem;
+  }
+  footer{
+    text-align:center; padding:26px; color:#9a917d; font-size:.82rem;
+    font-family:'Segoe UI',system-ui,sans-serif;
+  }
+</style>
+<link rel="stylesheet" href="../../css/annotate.css">
+<script defer src="../../js/annotate.js"></script>
+</head>
+<body>
+<div id="archive-bar" style="position:sticky;top:0;z-index:9999;display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:.55rem 1rem;font-family:Georgia,serif;font-size:.85rem;background:rgba(247,244,238,.96);border-bottom:1px solid #ddd6c7"><a href="../../index.html" style="color:#1c2129;text-decoration:none">The Latent Archive</a><span style="color:#9a917d">Internet of Things · Unit 1</span><a href="../index.html" style="color:#9a5313;text-decoration:none">Back to IoT</a></div>
+<div class="trace"></div>
+<header class="hero">
+  <p class="eyebrow">UE24CS342AA3 &middot; Internet of Things</p>
+  <h1 class="title">Unit 1 Study Guide</h1>
+  <p class="sub">From "what even is a smart object" to writing your first MicroPython and Arduino sketches — built from the six lecture decks, with every slide, in the order the ideas actually build on each other.</p>
+</header>
+<main>
+  <p class="lede">
+    This isn't a shorter version of the slides. It's the explanation a lecturer fills in out loud
+    that the deck itself never writes down: why a sensor's <em>accuracy</em> and <em>precision</em>
+    are different numbers, why IoT needed a new architecture instead of just reusing the web's,
+    why an ESP32 gets you further than an Arduino Uno for some jobs and not others. Every one of the
+    <strong>285 slides</strong> across the six decks appears somewhere below — scaffolding and recap slides
+    get a one-line caption, the real content gets the full derivation.
+  </p>
+
+  <div class="cards">
+    <a class="card" href="01-introduction-to-iot.html">
+      <span class="num">Chapter 1</span>
+      <h2>Introduction to IoT &amp; Applications</h2>
+      <p>What IoT actually is, how its traffic differs from human traffic, connectivity &amp; gateways, and a tour of IIoT, smart cities, healthcare, and agriculture.</p>
+      <div class="source">Decks 1 &amp; 2 &middot; 104 slides</div>
+    </a>
+    <a class="card" href="02-iot-architecture.html">
+      <span class="num">Chapter 2</span>
+      <h2>IoT Architecture</h2>
+      <p>Why architecture is driven by constraints, not preference — the three-layer, five-layer, and Cisco IoTWF models, and where edge, fog, and cloud each earn their place.</p>
+      <div class="source">Deck 3 &middot; 53 slides</div>
+    </a>
+    <a class="card" href="03-sensors-actuators-smart-objects.html">
+      <span class="num">Chapter 3</span>
+      <h2>Sensors, Actuators &amp; Smart Objects</h2>
+      <p>The eyes, ears, and hands of an IoT system: sensor taxonomies, the boards that read them, the metrics that make one sensor better than another for a job, and what turns a sensor into a smart object.</p>
+      <div class="source">Deck 4 &middot; 65 slides</div>
+    </a>
+    <a class="card" href="04-microcontrollers-esp32-arm.html">
+      <span class="num">Chapter 4</span>
+      <h2>Microcontrollers: ESP32 &amp; ARM</h2>
+      <p>Inside the chip that runs an IoT "thing" — embedded system anatomy, the ESP32's GPIO and power modes, and why Cortex-M and Cortex-A are built for opposite jobs.</p>
+      <div class="source">Deck 5 &middot; 24 slides</div>
+    </a>
+    <a class="card" href="05-programming-micropython-arduino.html">
+      <span class="num">Chapter 5</span>
+      <h2>Programming the IoT: MicroPython &amp; Arduino</h2>
+      <p>The two languages you'll actually write for this course — from a Python REPL on bare metal to <code>setup()</code>/<code>loop()</code> C — with every guided task walked through.</p>
+      <div class="source">Deck 6 &middot; 39 slides</div>
+    </a>
+  </div>
+
+  <div class="note">
+    Course-logistics slides (honour code, grading, late-submission penalties, and the like) are noted
+    where they occur but not re-explained — they're administrative, not conceptual, and you already
+    know where to find them if you need the details again.
+  </div>
+</main>
+<footer>Built from the six UE24CS342AA3 lecture decks &middot; every slide included</footer>
+</body>
+</html>

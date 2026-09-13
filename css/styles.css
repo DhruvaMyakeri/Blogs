@@ -1084,6 +1084,20 @@ html[data-theme="dark"] .carousel-media {
   background: #f4f1ea;
 }
 
+.folder-hero--wide {
+  max-width: 46rem;
+}
+
+.post-card-media--iot {
+  aspect-ratio: 1024 / 648;
+}
+
+.post-card-media--iot img {
+  object-fit: cover;
+  object-position: center center;
+  filter: saturate(0.92) contrast(1.02);
+}
+
 .folder-hero img {
   display: block;
   width: 100%;

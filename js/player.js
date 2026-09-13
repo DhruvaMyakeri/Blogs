@@ -207,7 +207,10 @@
   function isHeavyNotesPage(href) {
     try {
       const path = new URL(href, location.href).pathname.replace(/\\/g, "/");
-      return /\/image-processing\/unit\d+\.html$/i.test(path);
+      return (
+        /\/image-processing\/unit\d+\.html$/i.test(path) ||
+        /\/IOT\/unit-\d+\//i.test(path)
+      );
     } catch {
       return false;
     }

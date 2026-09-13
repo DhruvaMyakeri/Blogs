@@ -206,10 +206,13 @@
 
   function isHeavyNotesPage(href) {
     try {
-      const path = new URL(href, location.href).pathname.replace(/\\/g, "/");
+      const path = new URL(href, location.href).pathname
+        .replace(/\\/g, "/")
+        .replace(/\/index\.html$/i, "/")
+        .replace(/\.html$/i, "");
       return (
-        /\/image-processing\/unit\d+\.html$/i.test(path) ||
-        /\/IOT\/unit-\d+\//i.test(path)
+        /\/image-processing\/unit\d+\/?$/i.test(path) ||
+        /\/IOT\/unit-\d+/i.test(path)
       );
     } catch {
       return false;
@@ -247,7 +250,7 @@
 
   async function softNavigate(href, push = true) {
     const url = new URL(href, location.href);
-    if (isHeavyNotesPage(url.href)) {
+    if (isHeavyNotesPage(url.href) || isHeavyNotesPage(location.href)) {
       location.href = url.href;
       return;
     }
@@ -327,14 +330,14 @@
       if (a.dataset.softBound === "1") return;
       if (a.hasAttribute("data-full-page")) return;
       const href = a.getAttribute("href");
-      if (!isInternal(href) || isHeavyNotesPage(href)) return;
+      if (!isInternal(href) || isHeavyNotesPage(a.href)) return;
       a.dataset.softBound = "1";
       a.addEventListener("click", (e) => {
         if (e.defaultPrevented || e.button !== 0) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         if (a.target && a.target !== "_self") return;
         e.preventDefault();
-        softNavigate(href);
+        softNavigate(a.href);
       });
     });
   }

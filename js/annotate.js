@@ -2,7 +2,7 @@
   const KEY = "archive-annotate:" + location.pathname.replace(/\\/g, "/");
   const tools = {
     pen: { size: 2.4, alpha: 1 },
-    highlight: { size: 18, alpha: 0.32 },
+    highlight: { size: 18, alpha: 0.28 },
     erase: { size: 22, alpha: 1 },
   };
 
@@ -12,6 +12,10 @@
   let drawing = null;
   let canvas;
   let ctx;
+  let dpr = 1;
+  let raf = 0;
+  let pageW = 1;
+  let pageH = 1;
 
   function load() {
     try {
@@ -30,31 +34,46 @@
     }
   }
 
-  function docSize() {
+  function measurePage() {
     const el = document.documentElement;
-    return {
-      w: Math.max(el.scrollWidth, el.clientWidth, 1),
-      h: Math.max(el.scrollHeight, el.clientHeight, document.body?.scrollHeight || 0, 1),
-    };
+    pageW = Math.max(el.scrollWidth, el.clientWidth, 1);
+    pageH = Math.max(el.scrollHeight, document.body?.scrollHeight || 0, el.clientHeight, 1);
   }
 
   function pointFromEvent(e) {
     const t = e.touches ? e.touches[0] : e;
-    const { w, h } = docSize();
-    return { x: t.pageX / w, y: t.pageY / h };
+    return {
+      x: (t.clientX + window.scrollX) / pageW,
+      y: (t.clientY + window.scrollY) / pageH,
+    };
   }
 
-  function resize() {
-    const { w, h } = docSize();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
+  function toScreen(p) {
+    return {
+      x: p.x * pageW - window.scrollX,
+      y: p.y * pageH - window.scrollY,
+    };
+  }
+
+  function strokeVisible(s) {
+    if (!s.points || !s.points.length) return false;
+    const pad = 24;
+    let minX = 1;
+    let minY = 1;
+    let maxX = 0;
+    let maxY = 0;
+    for (const p of s.points) {
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y > maxY) maxY = p.y;
     }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    redraw();
+    const top = window.scrollY / pageH;
+    const bot = (window.scrollY + window.innerHeight) / pageH;
+    const left = window.scrollX / pageW;
+    const right = (window.scrollX + window.innerWidth) / pageW;
+    const m = pad / Math.min(pageW, pageH);
+    return maxX >= left - m && minX <= right + m && maxY >= top - m && minY <= bot + m;
   }
 
   function styleStroke(s) {
@@ -66,7 +85,7 @@
       ctx.globalCompositeOperation = "destination-out";
       ctx.strokeStyle = "rgba(0,0,0,1)";
     } else if (s.tool === "highlight") {
-      ctx.globalCompositeOperation = "multiply";
+      ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = hexToRgba(s.color || "#f2d15a", spec.alpha);
     } else {
       ctx.globalCompositeOperation = "source-over";
@@ -82,24 +101,49 @@
 
   function drawStroke(s) {
     if (!s.points || s.points.length < 1) return;
-    const { w, h } = docSize();
     styleStroke(s);
+    const a = toScreen(s.points[0]);
     ctx.beginPath();
-    ctx.moveTo(s.points[0].x * w, s.points[0].y * h);
+    ctx.moveTo(a.x, a.y);
     for (let i = 1; i < s.points.length; i++) {
-      ctx.lineTo(s.points[i].x * w, s.points[i].y * h);
+      const p = toScreen(s.points[i]);
+      ctx.lineTo(p.x, p.y);
     }
-    if (s.points.length === 1) {
-      ctx.lineTo(s.points[0].x * w + 0.01, s.points[0].y * h);
-    }
+    if (s.points.length === 1) ctx.lineTo(a.x + 0.2, a.y);
     ctx.stroke();
     ctx.globalCompositeOperation = "source-over";
   }
 
-  function redraw() {
-    const { w, h } = docSize();
+  function paint() {
+    raf = 0;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    strokes.forEach(drawStroke);
+    for (let i = 0; i < strokes.length; i++) {
+      if (strokeVisible(strokes[i])) drawStroke(strokes[i]);
+    }
+    if (drawing && strokeVisible(drawing)) drawStroke(drawing);
+  }
+
+  function requestPaint() {
+    if (!raf) raf = requestAnimationFrame(paint);
+  }
+
+  function fitCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const bw = Math.round(w * dpr);
+    const bh = Math.round(h * dpr);
+    if (canvas.width !== bw || canvas.height !== bh) {
+      canvas.width = bw;
+      canvas.height = bh;
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+    }
+    measurePage();
+    requestPaint();
   }
 
   function setTool(next) {
@@ -112,30 +156,39 @@
 
   function start(e) {
     if (tool === "hand") return;
-    if (e.touches) e.preventDefault();
+    if (e.pointerType === "touch") e.preventDefault();
+    measurePage();
     drawing = {
       tool,
       color: tool === "highlight" ? "#f2d15a" : color,
       points: [pointFromEvent(e)],
     };
-    drawStroke(drawing);
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    requestPaint();
   }
 
   function move(e) {
     if (!drawing) return;
-    if (e.touches) e.preventDefault();
-    drawing.points.push(pointFromEvent(e));
-    drawStroke({
-      ...drawing,
-      points: drawing.points.slice(-2),
-    });
+    if (e.pointerType === "touch") e.preventDefault();
+    const p = pointFromEvent(e);
+    const last = drawing.points[drawing.points.length - 1];
+    const dx = (p.x - last.x) * pageW;
+    const dy = (p.y - last.y) * pageH;
+    if (dx * dx + dy * dy < 1.6) return;
+    drawing.points.push(p);
+    requestPaint();
   }
 
   function end() {
     if (!drawing) return;
-    strokes.push(drawing);
+    if (drawing.points.length) strokes.push(drawing);
     drawing = null;
     save();
+    requestPaint();
   }
 
   function buildBar() {
@@ -161,14 +214,14 @@
     bar.querySelector('[data-annotate-act="undo"]').addEventListener("click", () => {
       strokes.pop();
       save();
-      redraw();
+      requestPaint();
     });
     bar.querySelector('[data-annotate-act="clear"]').addEventListener("click", () => {
       if (!strokes.length) return;
       if (!confirm("Clear all marks on this page?")) return;
       strokes = [];
       save();
-      redraw();
+      requestPaint();
     });
     document.body.appendChild(bar);
   }
@@ -179,19 +232,17 @@
     canvas.id = "annotate-layer";
     canvas.setAttribute("aria-hidden", "true");
     document.body.appendChild(canvas);
-    ctx = canvas.getContext("2d");
+    ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     buildBar();
     setTool("hand");
-    resize();
+    fitCanvas();
 
-    canvas.addEventListener("mousedown", start);
-    canvas.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", end);
-    canvas.addEventListener("touchstart", start, { passive: false });
-    canvas.addEventListener("touchmove", move, { passive: false });
-    window.addEventListener("touchend", end);
-    window.addEventListener("resize", resize);
-    new ResizeObserver(resize).observe(document.documentElement);
+    canvas.addEventListener("pointerdown", start);
+    canvas.addEventListener("pointermove", move);
+    canvas.addEventListener("pointerup", end);
+    canvas.addEventListener("pointercancel", end);
+    window.addEventListener("scroll", requestPaint, { passive: true });
+    window.addEventListener("resize", fitCanvas);
   }
 
   if (document.readyState === "loading") {

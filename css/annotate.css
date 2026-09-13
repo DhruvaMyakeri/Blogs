@@ -1,0 +1,71 @@
+.annotate-bar {
+  position: fixed;
+  right: 1rem;
+  bottom: max(1.1rem, env(safe-area-inset-bottom));
+  z-index: 10050;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.45rem;
+  background: rgba(246, 243, 238, 0.96);
+  border: 1px solid #ddd6ca;
+  box-shadow: 0 8px 24px rgba(20, 12, 6, 0.18);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.annotate-bar button,
+.annotate-bar input[type="color"] {
+  appearance: none;
+  width: 2.05rem;
+  height: 2.05rem;
+  padding: 0;
+  border: 1px solid #c9b99a;
+  background: #fffdf9;
+  color: #1c1a17;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.annotate-bar button.is-on {
+  background: #c1521f;
+  border-color: #c1521f;
+  color: #fffdf9;
+}
+
+.annotate-bar input[type="color"] {
+  padding: 0.15rem;
+}
+
+.annotate-bar .annotate-sep {
+  width: 1px;
+  height: 1.4rem;
+  background: #ddd6ca;
+  margin: 0 0.15rem;
+}
+
+#annotate-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 10040;
+  pointer-events: none;
+}
+
+html.annotate-draw #annotate-layer {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+html.annotate-draw body {
+  user-select: none;
+}
+
+@media (max-width: 640px) {
+  .annotate-bar {
+    left: 0.7rem;
+    right: 0.7rem;
+    justify-content: center;
+  }
+}

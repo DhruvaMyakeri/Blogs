@@ -309,6 +309,7 @@
   function bindLinks() {
     document.querySelectorAll("a[href]").forEach((a) => {
       if (a.dataset.softBound === "1") return;
+      if (a.hasAttribute("data-full-page")) return;
       const href = a.getAttribute("href");
       if (!isInternal(href)) return;
       a.dataset.softBound = "1";

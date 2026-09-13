@@ -245,7 +245,45 @@
     const themeLink =
       document.querySelector('link[href*="theme.css"][data-keep]') ||
       document.querySelector('link[href*="theme.css"]');
-    if (themeLink) document.head.appendChild(themeLink);
+    if (themeLink) {
+      const href = themeLink.getAttribute("href");
+      if (href && !href.startsWith("http") && !href.startsWith("/")) {
+        themeLink.setAttribute("href", new URL(href, location.origin + "/").href);
+      }
+      document.head.appendChild(themeLink);
+    }
+  }
+
+  function pageBase(doc, pageUrl) {
+    const b = doc.querySelector("base[href]");
+    try {
+      return b ? new URL(b.getAttribute("href"), pageUrl).href : pageUrl;
+    } catch {
+      return pageUrl;
+    }
+  }
+
+  function absolutize(href, base) {
+    if (!href || /^(#|mailto:|tel:|javascript:|data:)/i.test(href)) return href;
+    try {
+      return new URL(href, base).href;
+    } catch {
+      return href;
+    }
+  }
+
+  function absolutizeTree(root, base) {
+    if (!root?.querySelectorAll) return;
+    root.querySelectorAll("[src]").forEach((el) => {
+      const raw = el.getAttribute("src");
+      if (!raw || raw.startsWith("data:")) return;
+      el.setAttribute("src", absolutize(raw, base));
+    });
+    root.querySelectorAll("a[href]").forEach((el) => {
+      const raw = el.getAttribute("href");
+      if (!raw || /^(#|mailto:|tel:|javascript:)/i.test(raw)) return;
+      el.setAttribute("href", absolutize(raw, base));
+    });
   }
 
   async function softNavigate(href, push = true) {
@@ -264,7 +302,11 @@
     try {
       const res = await fetch(url.href, { headers: { Accept: "text/html" } });
       if (!res.ok) throw new Error("fetch failed");
+      const pageUrl = res.url || url.href;
       const doc = new DOMParser().parseFromString(await res.text(), "text/html");
+      const nextBase = pageBase(doc, pageUrl);
+
+      document.querySelectorAll("head base").forEach((el) => el.remove());
 
       // Mark current page styles for removal (keeps theme.css).
       tagHeadAssets();
@@ -275,6 +317,7 @@
         const hrefAttr = el.getAttribute("href") || "";
         if (hrefAttr.includes("theme.css")) return;
         const clone = document.importNode(el, true);
+        if (hrefAttr) clone.setAttribute("href", absolutize(hrefAttr, nextBase));
         clone.setAttribute("data-nav-next", "");
         clone.removeAttribute("data-nav-asset");
         document.head.appendChild(clone);
@@ -298,6 +341,7 @@
         if (child.matches?.("[data-theme-toggle]")) return;
         if (child.tagName === "SCRIPT") return;
         const node = document.importNode(child, true);
+        absolutizeTree(node, nextBase);
         if (anchor) document.body.insertBefore(node, anchor);
         else document.body.appendChild(node);
       });

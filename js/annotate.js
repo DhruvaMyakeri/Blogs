@@ -10,12 +10,13 @@
   let tool = "hand";
   let color = "#c1521f";
   let drawing = null;
-  let canvas;
-  let ctx;
+  let canvas = null;
+  let ctx = null;
   let dpr = 1;
   let raf = 0;
   let pageW = 1;
   let pageH = 1;
+  let bound = false;
 
   function load() {
     try {
@@ -36,7 +37,7 @@
 
   function measurePage() {
     const el = document.documentElement;
-    pageW = Math.max(el.scrollWidth, el.clientWidth, 1);
+    pageW = Math.max(el.clientWidth, window.innerWidth, 1);
     pageH = Math.max(el.scrollHeight, document.body?.scrollHeight || 0, el.clientHeight, 1);
   }
 
@@ -57,23 +58,21 @@
 
   function strokeVisible(s) {
     if (!s.points || !s.points.length) return false;
-    const pad = 24;
-    let minX = 1;
     let minY = 1;
-    let maxX = 0;
     let maxY = 0;
     for (const p of s.points) {
-      if (p.x < minX) minX = p.x;
       if (p.y < minY) minY = p.y;
-      if (p.x > maxX) maxX = p.x;
       if (p.y > maxY) maxY = p.y;
     }
     const top = window.scrollY / pageH;
     const bot = (window.scrollY + window.innerHeight) / pageH;
-    const left = window.scrollX / pageW;
-    const right = (window.scrollX + window.innerWidth) / pageW;
-    const m = pad / Math.min(pageW, pageH);
-    return maxX >= left - m && minX <= right + m && maxY >= top - m && minY <= bot + m;
+    return maxY >= top - 0.02 && minY <= bot + 0.02;
+  }
+
+  function hexToRgba(hex, a) {
+    const h = hex.replace("#", "");
+    const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
   }
 
   function styleStroke(s) {
@@ -93,14 +92,8 @@
     }
   }
 
-  function hexToRgba(hex, a) {
-    const h = hex.replace("#", "");
-    const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
-    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
-  }
-
   function drawStroke(s) {
-    if (!s.points || s.points.length < 1) return;
+    if (!ctx || !s.points || s.points.length < 1) return;
     styleStroke(s);
     const a = toScreen(s.points[0]);
     ctx.beginPath();
@@ -116,34 +109,75 @@
 
   function paint() {
     raf = 0;
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    if (!ctx || !canvas) return;
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || window.innerHeight;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
     for (let i = 0; i < strokes.length; i++) {
       if (strokeVisible(strokes[i])) drawStroke(strokes[i]);
     }
-    if (drawing && strokeVisible(drawing)) drawStroke(drawing);
+    if (drawing) drawStroke(drawing);
   }
 
   function requestPaint() {
+    if (!ctx) return;
     if (!raf) raf = requestAnimationFrame(paint);
   }
 
   function fitCanvas() {
-    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    if (!canvas || !ctx) return;
+    dpr = 1;
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const bw = Math.round(w * dpr);
-    const bh = Math.round(h * dpr);
+    const bw = Math.max(1, Math.round(w));
+    const bh = Math.max(1, Math.round(h));
     if (canvas.width !== bw || canvas.height !== bh) {
       canvas.width = bw;
       canvas.height = bh;
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
     }
     measurePage();
     requestPaint();
+  }
+
+  function ensureCanvas() {
+    if (canvas && ctx) return true;
+    canvas = document.createElement("canvas");
+    canvas.id = "annotate-layer";
+    canvas.setAttribute("aria-hidden", "true");
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) {
+      canvas.remove();
+      canvas = null;
+      return false;
+    }
+    if (!bound) {
+      bound = true;
+      canvas.addEventListener("pointerdown", start);
+      canvas.addEventListener("pointermove", move);
+      canvas.addEventListener("pointerup", end);
+      canvas.addEventListener("pointercancel", end);
+      window.addEventListener("scroll", requestPaint, { passive: true });
+      window.addEventListener("resize", fitCanvas);
+    }
+    fitCanvas();
+    return true;
+  }
+
+  function destroyCanvasIfIdle() {
+    if (tool !== "hand" || drawing || strokes.length) return;
+    if (raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+    if (canvas) {
+      canvas.remove();
+      canvas = null;
+      ctx = null;
+    }
   }
 
   function setTool(next) {
@@ -152,10 +186,12 @@
     document.querySelectorAll("[data-annotate-tool]").forEach((b) => {
       b.classList.toggle("is-on", b.dataset.annotateTool === tool);
     });
+    if (tool !== "hand") ensureCanvas();
+    else if (!strokes.length) destroyCanvasIfIdle();
   }
 
   function start(e) {
-    if (tool === "hand") return;
+    if (tool === "hand" || !ensureCanvas()) return;
     if (e.pointerType === "touch") e.preventDefault();
     measurePage();
     drawing = {
@@ -178,7 +214,7 @@
     const last = drawing.points[drawing.points.length - 1];
     const dx = (p.x - last.x) * pageW;
     const dy = (p.y - last.y) * pageH;
-    if (dx * dx + dy * dy < 1.6) return;
+    if (dx * dx + dy * dy < 2.2) return;
     drawing.points.push(p);
     requestPaint();
   }
@@ -214,7 +250,13 @@
     bar.querySelector('[data-annotate-act="undo"]').addEventListener("click", () => {
       strokes.pop();
       save();
-      requestPaint();
+      if (strokes.length) {
+        ensureCanvas();
+        requestPaint();
+      } else {
+        requestPaint();
+        destroyCanvasIfIdle();
+      }
     });
     bar.querySelector('[data-annotate-act="clear"]').addEventListener("click", () => {
       if (!strokes.length) return;
@@ -222,27 +264,16 @@
       strokes = [];
       save();
       requestPaint();
+      destroyCanvasIfIdle();
     });
     document.body.appendChild(bar);
   }
 
   function init() {
     load();
-    canvas = document.createElement("canvas");
-    canvas.id = "annotate-layer";
-    canvas.setAttribute("aria-hidden", "true");
-    document.body.appendChild(canvas);
-    ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     buildBar();
     setTool("hand");
-    fitCanvas();
-
-    canvas.addEventListener("pointerdown", start);
-    canvas.addEventListener("pointermove", move);
-    canvas.addEventListener("pointerup", end);
-    canvas.addEventListener("pointercancel", end);
-    window.addEventListener("scroll", requestPaint, { passive: true });
-    window.addEventListener("resize", fitCanvas);
+    if (strokes.length) ensureCanvas();
   }
 
   if (document.readyState === "loading") {

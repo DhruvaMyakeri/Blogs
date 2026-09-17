@@ -1,0 +1,236 @@
+<div class="hero">
+  <span class="kicker">Lecture 10 · Deck 10</span>
+  <h1>Run-Length, Symbol-Based &amp; Bit-Plane Coding</h1>
+  <p class="dek">Section 9 removed coding redundancy by re-coding symbols according to how often they occur.
+  This section attacks the <em>other</em> redundancy type from Section 8.2 — spatial redundancy, the tendency
+  of neighboring pixels to repeat — with three different, genuinely simple techniques.</p>
+</div>
+
+<div class="caption-only"><img src="assets/deck10-02.png"><span class="cap-text">Deck 10, slide 2 — section
+divider: "Lecture 10: Run length coding, symbol encoding, bit-plane coding."</span></div>
+
+<section class="concept" id="rle">
+  <h2 class="concept-title">10.1 · Run-Length Encoding (RLE)</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-03.png"></div>
+  <div class="caption-only"><img src="assets/deck10-05.png"><span class="cap-text">Deck 10, slide 5 — worked
+  examples: "BBBBBBBBBAAAA...NMMMM..." → "B09A16N01M10", and a binary row → run-lengths 14, 4, 0, 12.</span></div>
+  <p>The idea could not be more direct: a <strong>run</strong> is a maximal stretch of identical adjacent
+  values. Instead of storing every value in the run individually, store the value once together with a count
+  of how many times it repeats. "WWWWWWWWWWWBWWWWWWWWWWWWWWWWBBBWWWWWWWWWWWWWWWWWWWWWWWWWWWBWWWWWWWWWWWWWWWWWWWWW"
+  (79 characters) compresses to "12W1B12W3B24W1B14W" — the run-length pairs literally spelling out how many W's,
+  then how many B's, and so on.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-04.png"></div>
+  <p>Formalized as a <strong>run-length pair</strong> (start of a new intensity, count of consecutive pixels at
+  that intensity): the data source <code>3 0 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0</code> becomes the pairs
+  (3,1)(0,9)(1,4)(0,4) — read left to right, a 3 for one pixel, then a 0 for nine pixels, then a 1 for four
+  pixels, then a 0 for four pixels.</p>
+
+  <h3>Why this specifically loves binary (bilevel) images</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-06.png"></div>
+  <p>With only two possible intensities, the color of a run is completely predictable — it's simply whichever
+  color the previous run wasn't. So a bilevel image's RLE data can drop the color field entirely and store just
+  a sequence of run <em>lengths</em>, alternating color implicitly (as long as everyone agrees the first run of
+  each row is a particular color, even a zero-length one where needed). This single simplification — dropping
+  half of every pair — is exactly why RLE became the natural fit for fax transmission (Section 10.2) and every
+  other bilevel-document standard.</p>
+
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    RLE is not universally good — it can make data <em>larger</em>. "ABCD" (4 characters, no repeats at all)
+    becomes "1A1B1C1D" (8 characters) — every run of length 1 still needs its count written out, so a run-length
+    pair costs more than a single raw value whenever there's nothing to run together. RLE's compression ratio,
+    unlike Huffman's, is entirely data-dependent: excellent on repetitive data (best case: a solid 16-value run
+    of 0's shrinks to a 2-value pair), useless-to-harmful on data with no runs at all (worst case: every
+    consecutive value differs, so every run has length 1 and the encoding roughly doubles in size). Because it
+    can expand data, RLE genuinely can't be run safely "in place" over the original buffer.
+  </div>
+  <div class="caption-only"><img src="assets/deck10-07.png"><span class="cap-text">Deck 10, slide 7 — the same
+  ABCD/6666666666655 limitations, plus a dot-pattern practice image for computing an RLE by hand.</span></div>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Run-length encoding a real bit-plane</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/bitplane_7.png"><div class="lbl">bit-plane 7 (the MSB) —
+      a genuinely bilevel image</div></div>
+    </div>
+    <p style="margin-top:10px">Taking one horizontal scan line straight through the middle of this bit-plane
+    gives just <strong>3 runs</strong> across all 344 pixels: 17 zeros, then 168 ones, then 159 zeros. Encoding
+    that single row as (start-color bit) + 3 run-length pairs (8 bits each) needs only 25 bits, versus 344 bits
+    stored naively — a <strong>13.8:1</strong> compression ratio for that one row alone. Running the same
+    row-by-row RLE across the <em>entire</em> bit-plane (2,111 total runs across all 438 rows) compresses it
+    from 150,672 bits down to 17,326 bits — still a strong <strong>8.7:1</strong> ratio, even though a full 2D
+    image obviously has far more transitions than one hand-picked row. This is a direct, numeric illustration
+    of why RLE is specifically effective on binary bit-planes rather than the full 256-level image.</p>
+  </div>
+
+  <h3>Worked example: computing a real compression ratio by hand</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-08.png"></div>
+  <p>This is the same 6×5, 4-gray-level image used as Section 9.3's second Huffman worked example — a nice
+  reminder that the two techniques are usually compared side by side on identical data, since they attack the
+  same redundancy from two different angles (coding redundancy for Huffman; spatial redundancy for RLE) and a
+  real system often benefits from combining both.</p>
+</section>
+
+<section class="concept" id="ccitt">
+  <h2 class="concept-title">10.2 · CCITT fax standards: RLE, formalized for real transmission</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-09.png"></div>
+  <p>The CCITT (an international standards body) formalized run-length coding for fax transmission into three
+  concrete algorithms, each layering more sophistication onto the same core RLE idea.</p>
+
+  <h3>Group 3 1D (Modified Huffman)</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-10.png"></div>
+  <p>Rather than storing raw run lengths, MH looks up each run length in a <strong>predefined, statistically-tuned
+  Huffman table</strong> (built from analyzing typical scanned documents) — this is Sections 9 and 10.1 fused
+  directly together: RLE decides <em>what</em> gets counted (runs), Huffman coding decides <em>how few bits</em>
+  each count actually costs.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-11.png"></div>
+  <p>Because run lengths can be arbitrarily long but a lookup table can't have infinite entries, MH splits a run
+  length r into a <strong>terminating code</strong> (covers r mod 64, i.e. 0–63) plus, if needed, one or more
+  <strong>makeup codes</strong> (each worth a multiple of 64, up to the run's ⌊r/64⌋×64 portion).</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-12.png"></div>
+  <p>The worked examples show the payoff scaling dramatically with run length: a 20-pixel run compresses at
+  roughly 2:1, a 100-pixel run at over 7:1, and an 8800-pixel run (three 2560-makeup codes + one 1088-makeup
+  code + one 32-terminating code, totaling just 61 bits) achieves an astonishing <strong>~144:1</strong>. Longer,
+  more uniform runs — exactly what large blank regions of a scanned page produce — benefit the most.</p>
+
+  <h3>Group 3 2D and Group 4 2D: using the line above as a shortcut</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-13.png"></div>
+  <p>1D coding treats every scan line as if it were independent. But fax pages are documents — consecutive
+  lines are usually nearly identical (a straight line of text, a ruled margin). 2D coding exploits this by
+  coding each line's black/white transitions <em>relative to the previous line's transitions</em>, using
+  a <strong>reference element a₀</strong> on the current line and comparing against the previously-coded
+  <strong>reference line</strong>.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-14.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-15.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-16.png"></div>
+  <p>Three coding modes are chosen automatically per transition, from cheapest to most expensive:</p>
+  <ul>
+    <li><strong>Pass mode</strong> — the current run simply continues past where the reference line's matching
+    transition (b₂) occurs; cheapest, needs almost no new information (code: <code>0001</code>).</li>
+    <li><strong>Vertical mode</strong> — the current line's transition (a₁) is close (within 3 pixels) to the
+    reference line's transition (b₁); coded as a small signed offset.</li>
+    <li><strong>Horizontal mode</strong> — used when neither shortcut applies; falls back to coding two actual
+    run lengths (essentially 1D/MH coding) for this stretch.</li>
+  </ul>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    The whole point of preferring pass and vertical mode over horizontal mode is spatial redundancy exploited
+    <em>across</em> lines, not just within one: if a page has a straight vertical rule or an unchanging left
+    margin, every one of those lines' transitions sits at nearly the identical x-position as the line above it,
+    so vertical mode's tiny "offset by −1, 0, or +1" codes (Table 8.10: as short as a single bit) replace what
+    1D coding would have to re-describe as full run lengths on every single line. The K-factor and READ/MR/MMR
+    naming (Group 3 vs. Group 4) just control how many lines in a row are allowed to reference each other this
+    way before a fresh, safety-net 1D line is inserted (protecting against a transmission error propagating
+    forever through an unbroken chain of relative references) — Group 4 (MMR) permits unlimited chaining
+    (assuming a cleaner channel), while Group 3 (MR) forces a fresh 1D line every so often.
+  </div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-17.png"></div>
+</section>
+
+<section class="concept" id="symbol-based">
+  <h2 class="concept-title">10.3 · Symbol-based (token-based) encoding</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-18.png"></div>
+  <p>A different way to exploit repetition: instead of compressing runs of pixels, compress runs of
+  <em>subimages</em>. A <strong>symbol</strong> is a frequently-recurring subimage (in a scanned document, the
+  bitmap for one letter); a <strong>symbol dictionary</strong> stores each distinct symbol exactly once, and
+  the whole image is re-described as a list of triplets (x, y, token) — "place dictionary entry <em>token</em>
+  at position (x, y)."</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-19.png"></div>
+  <p>The worked "banana" example makes the payoff concrete: the word contains 6 letters, but only 3 distinct
+  glyphs (b, a, n). The dictionary stores each glyph's bitmap exactly once; the image itself becomes 6 short
+  triplets pointing back into that 3-entry dictionary — every repeated "a" and "n" is now just a few numbers
+  instead of a full re-drawn bitmap.</p>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    This is spatial redundancy exploited at a completely different <em>granularity</em> than RLE. RLE finds
+    repetition along a single 1D scanline, pixel by pixel. Symbol-based encoding finds repetition across
+    entire 2D regions scattered anywhere in the image — the six letters of "banana" are nowhere near each other
+    on the scanline, yet the technique still recognizes "a" as the same recurring unit each time. This is why
+    symbol-based encoding dramatically outperforms RLE specifically on text-heavy documents, where the
+    repeating units are whole characters, not runs of identical pixels.
+  </div>
+
+  <h3>JBIG2: symbol-based encoding as an actual standard</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-20.png"></div>
+  <p>JBIG2 segments a bilevel document into three region types, each compressed by the technique best suited
+  to it: <strong>text regions</strong> use exactly the symbol-dictionary idea above (one bitmap per character);
+  <strong>halftone regions</strong> (regularly-spaced dot patterns simulating gray tones, as in a newspaper
+  photo — recall Section 2.6's halftone/Moiré discussion) use a similar dictionary-of-patterns approach, but
+  the "symbols" are dither patterns, not characters; and <strong>generic regions</strong> (everything else —
+  line art, noise) fall back to arithmetic or MMR (Group 4) coding.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-21.png"></div>
+  <p>JBIG2 additionally permits <strong>lossy</strong> symbol matching — if two slightly different character
+  bitmaps in the scanned page (say, a slightly smudged "e" versus a clean one) are close enough, JBIG2 can
+  reuse a single dictionary entry for both, trading a small amount of visual fidelity for a much smaller
+  dictionary. The comparison figure shows this is often perceptually invisible: (b), the perceptually-lossy
+  version, reads identically to (a), the fully lossless version, to the eye — only the deliberately
+  contrast-enhanced difference image (c) reveals that any approximation happened at all.</p>
+</section>
+
+<section class="concept" id="bitplane">
+  <h2 class="concept-title">10.4 · Bit-plane coding</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-22.png"></div>
+  <p>An m-bit monochrome image can be written as a base-2 polynomial
+  a<sub>m-1</sub>2<sup>m-1</sup> + … + a₁2¹ + a₀2⁰ per pixel. Bit-plane coding takes this literally: collect
+  every pixel's a₀ bit into one full-size binary image (bit-plane 0), every a₁ bit into another (bit-plane 1),
+  and so on, producing m independent bilevel images from one m-bit image. Each bit-plane, being bilevel, can
+  then be compressed with exactly the bilevel-specialized techniques from Sections 10.1–10.3 (RLE, CCITT,
+  symbol-based/JBIG2) — this is precisely why bit-plane coding is used as a <em>front end</em> inside JBIG2 and
+  JPEG-2000 rather than as a compression method in its own right.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>All 8 bit-planes of the working image</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/bitplane_7.png"><div class="lbl">plane 7 (MSB)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/bitplane_6.png"><div class="lbl">plane 6</div></div>
+      <div class="sim-img-box"><img src="assets/sims/bitplane_5.png"><div class="lbl">plane 5</div></div>
+      <div class="sim-img-box"><img src="assets/sims/bitplane_4.png"><div class="lbl">plane 4</div></div>
+    </div>
+    <div class="sim-row" style="margin-top:10px">
+      <div class="sim-img-box"><img src="assets/sims/bitplane_3.png"><div class="lbl">plane 3</div></div>
+      <div class="sim-img-box"><img src="assets/sims/bitplane_2.png"><div class="lbl">plane 2</div></div>
+      <div class="sim-img-box"><img src="assets/sims/bitplane_1.png"><div class="lbl">plane 1</div></div>
+      <div class="sim-img-box"><img src="assets/sims/bitplane_0.png"><div class="lbl">plane 0 (LSB)</div></div>
+    </div>
+    <p style="margin-top:10px">Plane 7 alone already captures a recognizable silhouette — almost all of the
+    image's <em>structural</em> information lives in the highest-order bits. By plane 1 and plane 0, the
+    pattern looks like pure noise: these lowest bits are dominated by fine texture and sensor-level variation,
+    exactly the kind of detail Section 8.2 called "irrelevant information." This is a direct visual proof of
+    the energy-compaction idea from Section 6.4, expressed in the pixel domain rather than a transform domain.</p>
+    <div class="sim-row" style="margin-top:14px">
+      <div class="sim-img-box"><img src="assets/sims/bitplane_recon_top1.png"><div class="lbl">reconstructed from
+      top 1 plane only</div></div>
+      <div class="sim-img-box"><img src="assets/sims/bitplane_recon_top2.png"><div class="lbl">top 2 planes</div></div>
+      <div class="sim-img-box"><img src="assets/sims/bitplane_recon_top4.png"><div class="lbl">top 4 planes</div></div>
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">all 8 planes (original)</div></div>
+    </div>
+    <p style="margin-top:10px">Rebuilding the image from only its top few bit-planes (zeroing out the rest)
+    shows the same energy-compaction story from a different angle: 4 of 8 planes already give a very close
+    approximation to the full image, using half the data.</p>
+  </div>
+
+  <h3>Gray-coded bit planes: fixing a subtle instability</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-23.png"></div>
+  <div class="formula">
+    g<sub>m-1</sub> = a<sub>m-1</sub> &nbsp;&nbsp;&nbsp;&nbsp; g<sub>i</sub> = a<sub>i</sub> ⊕ a<sub>i+1</sub>
+    &nbsp; (0 ≤ i ≤ m−2)
+  </div>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    Ordinary binary encoding has an ugly property right at its power-of-two boundaries: going from intensity
+    127 (01111111) to 128 (10000000) flips <em>every single bit</em>, even though the two intensities are
+    perceptually almost identical. A tiny amount of real-world sensor noise that nudges a pixel back and forth
+    across that 127/128 boundary makes <em>every</em> bit-plane flicker at that pixel, which is disastrous for
+    compressing planes that are supposed to be smooth and easy to run-length-encode. The Gray code fixes this
+    with one clean guarantee: incrementing by 1 always changes <em>exactly one</em> bit, no matter where the
+    boundary falls. Re-expressing each pixel in Gray code before bit-plane-slicing means a small intensity
+    change stays a small, localized change in the bit-planes too — which is exactly what a bilevel compressor
+    like RLE or JBIG2 needs to do its job well.
+  </div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck10-24.png"></div>
+  <p>The comparison in Figure 8.19 shows this directly: the ordinary-binary bit-plane a₆ has visibly more
+  small-scale, ragged noise than the Gray-coded plane g₆ at the same significance level — the Gray code has
+  suppressed exactly the boundary-flicker artifact described above, leaving a cleaner, more compressible plane.</p>
+</section>

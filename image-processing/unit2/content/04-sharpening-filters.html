@@ -1,0 +1,121 @@
+<div class="hero">
+  <span class="kicker">Lecture 4 · Deck 4</span>
+  <h1>Sharpening Filters in the Frequency Domain</h1>
+  <p class="dek">Section 3 built three ways to keep low frequencies and discard high ones. This section simply
+  flips that goal: keep the high frequencies — the edges, the fine texture, the detail — and discard the low
+  ones. Because of that symmetry, most of Section 3's hard-won intuition (ringing, the ideal/Gaussian/Butterworth
+  spectrum) transfers over directly.</p>
+</div>
+
+<section class="concept" id="hpf-basics">
+  <h2 class="concept-title">4.1 · High-pass = 1 − low-pass</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-02.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-03.png"></div>
+  <p>Edges and fine detail correspond to rapid intensity change, which — from Section 1 — is exactly what high
+  spatial frequency means. So sharpening is: build an H(u,v) that suppresses low frequencies and passes high
+  ones. Rather than deriving three new formulas from scratch, notice that "everything except the low
+  frequencies" is just the complement of a low-pass filter:</p>
+  <div class="formula">H<sub>hp</sub>(u,v) = 1 − H<sub>lp</sub>(u,v)</div>
+  <p>Every filter from Section 3 therefore has an immediate high-pass counterpart, just by flipping this one
+  sign.</p>
+</section>
+
+<section class="concept" id="ideal-hpf">
+  <h2 class="concept-title">4.2 · Ideal High-Pass Filter</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-04.png"></div>
+  <div class="formula">H(u,v) = 0 &nbsp;if D(u,v) ≤ D₀ &nbsp;&nbsp;&nbsp; H(u,v) = 1 &nbsp;if D(u,v) &gt; D₀</div>
+  <p>A disc of zeros at the center (killing the DC term and everything near it), surrounded by ones everywhere
+  else. Applied to the same multi-element test image used throughout Section 3:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-05.png"></div>
+  <p>Every flat region collapses to black — with the DC term gone, there is nothing left to represent "average
+  brightness" — while every edge (the boxes, the letter "a", the bar chart, even the noise texture) survives as
+  a bright outline. As D₀ grows, fewer low frequencies are allowed to survive, so the result gets sparser and
+  edge-ier.</p>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    A high-pass-filtered image is not simply "the original minus the blur" in appearance — it looks like line
+    art. Every region of constant or slowly-varying intensity, no matter how large, contributes essentially
+    nothing, because the DC and near-DC frequencies that encoded it were exactly what got deleted. This is the
+    mirror image of the ideal low-pass result from Section 3.3, which kept the shapes but destroyed the edges.
+  </div>
+</section>
+
+<section class="concept" id="butterworth-gaussian-hpf">
+  <h2 class="concept-title">4.3 · Butterworth and Gaussian High-Pass Filters</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-06.png"></div>
+  <div class="formula">H(u,v) = 1 / [ 1 + (D₀ / D(u,v))<sup>2n</sup> ]</div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-07.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-08.png"></div>
+  <div class="formula">H(u,v) = 1 − e <sup>−D²(u,v) / 2D₀²</sup></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-09.png"></div>
+  <p>Same trade-off as Section 3.5, mirrored: the Butterworth transition can be tuned from sharp (large n,
+  ideal-like) to gradual (small n, Gaussian-like) via its order, while the Gaussian version has a fixed, always
+  smooth roll-off.</p>
+
+  <h3>Comparing all three side by side</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-10.png"></div>
+  <p>At the same D₀ = 15, the ideal filter's result is the crispest but noisiest-looking (ringing again), the
+  Gaussian's is the smoothest but has lost the most fine detail, and Butterworth (order 2) sits in between —
+  exactly the same ranking as the low-pass comparison in Section 3.5.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-11.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-12.png"></div>
+  <p>The 3-D transfer-function plots make the family relationship visually obvious: all three are a bowl-shaped
+  dip to zero at the center, differing only in how abruptly the walls of the bowl rise.</p>
+
+  <h3>Where the high-pass spatial kernel comes from</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-13.png"></div>
+  <div class="formula">
+    h<sub>HP</sub>(x,y) = 𝔉<sup>−1</sup>[H<sub>HP</sub>(u,v)] = 𝔉<sup>−1</sup>[1 − H<sub>LP</sub>(u,v)]
+    = δ(x,y) − h<sub>LP</sub>(x,y)
+  </div>
+  <p>This uses a small but useful fact: the inverse transform of the constant function "1" is a unit impulse
+  δ(x,y) — a single spike, zero everywhere else. So the high-pass kernel in the spatial domain is literally "a
+  spike, minus the low-pass blur kernel." That is worth sitting with, because it is exactly the unsharp-masking
+  idea from Section 5 stated as a single kernel: subtracting a blurred copy from the original (represented here
+  by the spike, i.e. the unblurred image) is what produces a sharpened result.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck4-14.png"></div>
+  <p>The resulting kernels confirm the family relationship one more time: the ideal filter's kernel shows the
+  same ringing side-lobes seen throughout Section 3, while Gaussian and Butterworth taper cleanly to zero — and
+  because a Gaussian's spectrum is broader-skirted than a comparable Butterworth's, its spatial kernel comes out
+  narrower.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Ideal vs. Butterworth high-pass, at matched cutoffs</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/hpf_ideal_15.png"><div class="lbl">Ideal HPF, D0=15</div></div>
+      <div class="sim-img-box"><img src="assets/sims/hpf_butter_15.png"><div class="lbl">Butterworth HPF,
+      D0=15, n=2</div></div>
+      <div class="sim-img-box"><img src="assets/sims/hpf_ideal_60.png"><div class="lbl">Ideal HPF, D0=60</div></div>
+      <div class="sim-img-box"><img src="assets/sims/hpf_butter_60.png"><div class="lbl">Butterworth HPF,
+      D0=60, n=2</div></div>
+    </div>
+    <p style="margin-top:10px">Only the silhouette outline, the fold lines in the fabric, and the fine cloud
+    texture survive — exactly the high-frequency content isolated back in Section 1.1's low-vs-high-frequency
+    preview. At D0 = 60, so much low-frequency structure is discarded that even the person's overall shape
+    becomes hard to make out; only crisp edges remain.</p>
+  </div>
+</section>
+
+<section class="concept" id="deck4-recap">
+  <h2 class="concept-title">4.4 · Where this goes next</h2>
+  <p class="recap-note">Deck 4 closes with an introduction to unsharp masking, high-boost filtering,
+  high-frequency-emphasis filtering, and the Laplacian in the frequency domain — the screenshots below are the
+  same slides Deck 5 uses to open its own, fuller treatment of the exact same material (identical content,
+  right down to the worked chest X-ray example). To avoid explaining it twice, the complete derivation and
+  worked example live in <strong>Section 5</strong>, along with the new material Deck 5 adds on top: Homomorphic
+  filtering.</p>
+  <div class="caption-only"><img src="assets/deck4-15.png"><span class="cap-text">Deck 4, slide 15 — unsharp
+  masking / high-boost derivation begins here; see Section 5.1.</span></div>
+  <div class="caption-only"><img src="assets/deck4-16.png"><span class="cap-text">Deck 4, slide 16 — high-boost
+  vs. high-frequency-emphasis transfer functions; see Section 5.1.</span></div>
+  <div class="caption-only"><img src="assets/deck4-17.png"><span class="cap-text">Deck 4, slide 17 — the
+  high-frequency-emphasis filter formula; see Section 5.1.</span></div>
+  <div class="caption-only"><img src="assets/deck4-18.png"><span class="cap-text">Deck 4, slide 18 — worked
+  chest X-ray example; see Section 5.1.</span></div>
+  <div class="caption-only"><img src="assets/deck4-19.png"><span class="cap-text">Deck 4, slide 19 — the X-ray
+  result figure; see Section 5.1.</span></div>
+  <div class="caption-only"><img src="assets/deck4-20.png"><span class="cap-text">Deck 4, slide 20 — the
+  Laplacian in the frequency domain; see Section 5.2.</span></div>
+</section>

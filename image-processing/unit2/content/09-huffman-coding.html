@@ -1,0 +1,256 @@
+<div class="hero">
+  <span class="kicker">Lecture 9 · Deck 9</span>
+  <h1>Huffman Coding</h1>
+  <p class="dek">Section 8.2 defined coding redundancy as spending equal-length codes on symbols that occur with
+  wildly unequal probability. Huffman coding is the concrete algorithm that removes exactly that redundancy —
+  provably optimally, for a code built one symbol at a time.</p>
+</div>
+
+<div class="caption-only"><img src="assets/deck9-02.png"><span class="cap-text">Deck 9, slide 2 — section
+divider: "Lecture 9: Huffman coding."</span></div>
+
+<section class="concept" id="entropy">
+  <h2 class="concept-title">9.1 · Entropy: the theoretical floor on code length</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-03.png"></div>
+  <p>Before building any code, it helps to know the best any code could possibly do. <strong>Entropy</strong>
+  measures how unpredictable a source is: a source that always emits the same symbol has zero entropy (nothing
+  to learn from seeing the next symbol); a source where every symbol is equally likely has maximum entropy
+  (every next symbol is a genuine surprise). The soup-throwing illustration makes this visceral — soup that
+  always lands in the bowl (low entropy, one predictable location) versus soup scattered uniformly across the
+  whole dining room (high entropy, no way to guess where the next bit lands).</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-04.png"></div>
+  <div class="caption-only"><img src="assets/deck9-07.png"><span class="cap-text">Deck 9, slide 7 — the formal
+  information-theory source for the I(E) and η=H(S) formulas below.</span></div>
+  <div class="formula">
+    I(E) = log(1/P(E)) = −log P(E) &nbsp;&nbsp;&nbsp;&nbsp;
+    η = H(S) = −Σ<sub>i=1</sub><sup>n</sup> p<sub>i</sub> log₂ p<sub>i</sub>
+  </div>
+  <p>A single event E with probability P(E) carries −log P(E) bits of "surprise": a near-certain event
+  (P close to 1) carries almost no information when it happens, while a rare event (P close to 0) carries a
+  lot. Averaging that surprise over every symbol in the alphabet, weighted by how often each symbol actually
+  occurs, gives the entropy η — the theoretical minimum average number of bits per symbol that <em>any</em>
+  lossless code could achieve for that source. This is the number Huffman coding is trying to approach as
+  closely as possible.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-06.png"></div>
+  <div class="caption-only"><img src="assets/deck9-05.png"><span class="cap-text">Deck 9, slide 5 — the "Barbara"
+  differential (x-derivative) image: a more compact histogram means lower entropy than the original photo.</span></div>
+  <p>The camera-operator example shows entropy responding exactly the way it should: the plain photograph has
+  entropy 7.032 bpp (close to the naive 8, since gray levels are fairly evenly spread); an edge-enhanced/local-equalized
+  version compresses that spread into fewer effective levels, dropping entropy to 4.348 bpp; and a binary
+  threshold — only two possible values — collapses it to just 0.976 bpp, barely above the theoretical minimum
+  of 1 bit for a source with (roughly) two equally-likely outcomes.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>The measured entropy of this guide's own working image</h4>
+    <p>Section 8.2 already reported this number in the context of coding redundancy: sample.png's grayscale
+    histogram has entropy <strong>6.876 bits/pixel</strong> — meaningfully below the naive 8. That single
+    number is the target the Huffman code built below will try to approach.</p>
+  </div>
+</section>
+
+<section class="concept" id="huffman-algorithm">
+  <h2 class="concept-title">9.2 · The Huffman algorithm</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-08.png"></div>
+  <p>Huffman coding builds a <strong>prefix code</strong> — no codeword is ever the bit-string prefix of
+  another — which is precisely what makes the code <strong>instantaneous</strong> (a decoder recognizes a
+  complete symbol the moment it's seen, no lookahead needed) and <strong>uniquely decodable</strong> (there is
+  never any ambiguity about where one codeword ends and the next begins). Given a set of symbols and their
+  probabilities, Huffman's algorithm produces the prefix code with the lowest possible average length — the
+  best any one-symbol-at-a-time code can do.</p>
+
+  <h3>Method I: source reduction</h3>
+  <div class="caption-only"><img src="assets/deck9-09.png"><span class="cap-text">Deck 9, slide 9 — Huffman
+  coding is variable-length, instantaneous, uniquely-decodable block coding; used in CCITT, JBIG2, JPEG, MPEG,
+  H.26x.</span></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-10.png"></div>
+  <ol>
+    <li>Order the symbols by probability, largest to smallest.</li>
+    <li>Merge the two <em>smallest</em>-probability symbols into one compound symbol whose probability is
+    their sum; re-sort.</li>
+    <li>Repeat until only one (probability-1) compound symbol remains.</li>
+    <li>Walk the merges back in reverse, assigning a 0 and a 1 to the two branches created at each merge.</li>
+  </ol>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-11.png"></div>
+  <p>For the six-symbol source {a₂:0.4, a₆:0.3, a₁:0.1, a₄:0.1, a₃:0.06, a₅:0.04}, repeated merging collapses
+  everything down to a single node, and reversing the process assigns progressively longer codes to
+  progressively rarer symbols: a₂ → 1 (1 bit — the most frequent symbol gets the shortest code), all the way
+  down to a₅ → 01011 (5 bits — the rarest symbol gets the longest code). The average code length here works
+  out to L<sub>avg</sub> = Σ l(r<sub>k</sub>)p(r<sub>k</sub>) = 2.2 bits/symbol — well under the ⌈log₂6⌉ = 3
+  bits a fixed-length code would need for 6 symbols.</p>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    Notice the shortest code (a₂, length 1) went to the symbol with the highest probability, and the code
+    lengths grow monotonically as probability shrinks. This is not a coincidence of this particular example —
+    it is the entire mechanism of the algorithm: because the two rarest symbols are always merged first, they
+    are always buried deepest in the resulting tree, and tree depth is exactly codeword length. "Frequent
+    symbols get short codes" isn't a design goal bolted on afterward; it falls directly out of always merging
+    the smallest two probabilities first.
+  </div>
+
+  <h3>Method II: building the binary tree directly (bottom-up)</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-12.png"></div>
+  <p>This is the same algorithm viewed as tree construction rather than table reduction — and it's the version
+  worth internalizing, since it generalizes cleanly to code (a priority queue of nodes, repeatedly popping the
+  two smallest and pushing their merged parent back in). Working through the alphabet
+  {C:32, D:42, E:120, K:7, L:42, M:24, U:37, Z:2}:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-13.png"></div>
+  <p>Step 1 sorts by frequency. Steps 2 onward repeatedly take the two lowest-frequency nodes still available
+  (first Z:2 and K:7, merging into a weight-9 internal node) and feed the merged node back into the pool as if
+  it were an ordinary symbol with that combined weight.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-14.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-15.png"></div>
+  <p>The process keeps merging the two lowest weights available at each step — (2,7)→9, then (9,24)→33,
+  then (32,33)→65, then (37,42)→79, then (65,79)→... — climbing steadily until every symbol is absorbed into
+  one tree rooted at the total weight, 306 (the sum of every frequency).</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-16.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-17.png"></div>
+  <p>Labeling every left branch 0 and every right branch 1 and reading each leaf's path from the root gives the
+  final code: <strong>E=0, U=100, D=101, L=110, C=1110, Z=111100, K=111101, M=11111</strong>. Once again, E —
+  by far the most frequent symbol at 120 — gets the shortest possible codeword (a single bit), while Z and K,
+  the rarest at 2 and 7, get buried 6 bits deep. The slide's own summary rule captures the whole algorithm in
+  one sentence: <strong>a letter with high weight has low depth, and vice versa</strong> — Huffman coding is,
+  at its core, a search for the tree with minimum <em>weighted</em> path length, where each leaf's contribution
+  is its own weight times its own depth.</p>
+
+  <h3>Worked example: encoding and decoding actual text</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-18.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-19.png"></div>
+  <p>A second, smaller alphabet {A:17, B:12, C:12, D:27, E:32} produces the code A=00, B=010, C=011, D=10,
+  E=11. Encoding the string "EAEBAECDEA" symbol-by-symbol via table lookup, then concatenating, gives the
+  bitstream <code>1100110100011011101100</code>. Decoding runs the identical tree in reverse: because the code
+  is prefix-free, the decoder can walk the bitstream left to right, greedily match the shortest valid codeword
+  at each position, and recover "EAEBAECDEA" with zero ambiguity — the practical payoff of the
+  instantaneous/uniquely-decodable properties defined back in Section 9.2's opening.</p>
+</section>
+
+<section class="concept" id="huffman-on-images">
+  <h2 class="concept-title">9.3 · Applying Huffman coding to an image histogram</h2>
+  <p>Everything above generalizes directly to image compression the moment the "alphabet" becomes the set of
+  gray levels and the "probabilities" become the image's own normalized histogram — precisely the setting
+  Section 8.2's coding-redundancy discussion was building toward.</p>
+
+  <h3>Worked example: a real 3-bit image histogram</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-20.png"></div>
+  <p>An image with 8 possible gray levels (3 bits/pixel, naive fixed-length coding) has the histogram shown —
+  heavily skewed, with level 7 alone covering 60.1% of all pixels. A fixed-length code spends 3 bits on every
+  pixel regardless, giving L<sub>avg</sub> = 3 exactly.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-21.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-22.png"></div>
+  <p>Running the same merge-the-two-smallest procedure across all 8 gray levels gives the dominant level 7 a
+  single-bit code ("0") and buries the rare levels 5 and 6 four bits deep — and the resulting average length
+  drops to <strong>L<sub>avg</sub> = 2.10 bits/pixel</strong>. Plugging into Section 8.3's own compression-ratio
+  formulas:</p>
+  <div class="formula">
+    C<sub>R</sub> = n₁/n₂ = 3/2.10 = <strong>1.43</strong> &nbsp;&nbsp;&nbsp;&nbsp;
+    R<sub>D</sub> = 1 − 1/C<sub>R</sub> = (3 − 2.10)/3 = <strong>0.3</strong>
+  </div>
+  <p>In plain terms: simply re-coding the same gray levels — no blurring, no transform, no information
+  discarded — losslessly shrinks this image to 70% of its original size, just by exploiting the fact that one
+  gray level dominates the histogram. This is coding redundancy, identified in Section 8.2, actually being
+  removed.</p>
+
+  <h3>Worked example: computing degree of compression directly from pixel counts</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck9-23.png"></div>
+  <p>A second, fully worked problem starts from a raw 6×5 pixel grid with 4 gray levels {0,1,2,3} and counts
+  occurrences directly: P(0)=15/30=0.5, P(3)=9/30=0.3, P(2)=4/30=0.1333, P(1)=2/30=0.0667. Building the Huffman
+  tree the same way — repeatedly merging the two smallest probabilities (0.0667 and 0.1333 merge first, then
+  that 0.2 merges with 0.3, then that 0.5 merges with the remaining 0.5) — gives codewords 0→1, 3→01, 2→001,
+  1→000. The most frequent value (0, at 50% of all pixels) gets the shortest 1-bit code, exactly as the pattern
+  predicts.</p>
+</section>
+
+<section class="concept" id="huffman-live">
+  <h2 class="concept-title">9.4 · Live simulation: building a real Huffman code for sample.png</h2>
+  <p>Rather than a toy 5- or 8-symbol alphabet, this runs the exact same algorithm from Section 9.2 on
+  sample.png's real 256-level grayscale histogram, live in your browser — click the button to build the tree,
+  assign codes, and compare the result against the 6.876 bpp entropy floor from Section 9.1.</p>
+  <div class="sim">
+    <span class="sim-tag">Interactive · runs entirely in this page, no server needed</span>
+    <h4>Huffman-code sample.png's grayscale histogram</h4>
+    <img id="huffSrcImg" src="assets/sims/gray.png" style="display:none">
+    <canvas id="huffCanvas" style="display:none"></canvas>
+    <div class="sim-controls">
+      <button id="huffRunBtn" style="background:var(--accent);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;">
+        Build Huffman code from the histogram
+      </button>
+    </div>
+    <div id="huffResults" style="margin-top:16px;"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const btn = document.getElementById('huffRunBtn');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    btn.disabled = true;
+    btn.textContent = 'Computing…';
+    const img = document.getElementById('huffSrcImg');
+    const run = function(){
+      const canvas = document.getElementById('huffCanvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      let data;
+      try {
+        data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      } catch(e){
+        document.getElementById('huffResults').innerHTML = '<p style="color:var(--ink-soft)">Could not read pixel data in this environment.</p>';
+        btn.disabled = false; btn.textContent = 'Build Huffman code from the histogram';
+        return;
+      }
+      const hist = new Array(256).fill(0);
+      let total = 0;
+      for(let i=0;i<data.length;i+=4){
+        hist[data[i]]++;
+        total++;
+      }
+      let nodes = [];
+      for(let v=0; v<256; v++){
+        if(hist[v] > 0) nodes.push({freq: hist[v], sym: v, left:null, right:null});
+      }
+      const nSymbols = nodes.length;
+      while(nodes.length > 1){
+        nodes.sort((a,b)=>a.freq-b.freq);
+        const a = nodes.shift(), b = nodes.shift();
+        nodes.push({freq: a.freq+b.freq, sym:null, left:a, right:b});
+      }
+      const root = nodes[0];
+      const codeLen = {};
+      (function walk(node, depth){
+        if(node.sym !== null){ codeLen[node.sym] = Math.max(depth,1); return; }
+        walk(node.left, depth+1);
+        walk(node.right, depth+1);
+      })(root, 0);
+      let avgLen = 0, entropy = 0;
+      const rows = [];
+      for(let v=0; v<256; v++){
+        if(hist[v] === 0) continue;
+        const p = hist[v]/total;
+        avgLen += p * codeLen[v];
+        entropy += -p*Math.log2(p);
+        rows.push({v, count:hist[v], p, len:codeLen[v]});
+      }
+      rows.sort((a,b)=>b.count-a.count);
+      const top = rows.slice(0,10);
+      let html = '';
+      html += '<p><strong>'+nSymbols+'</strong> distinct gray levels used out of 256. ';
+      html += 'Measured entropy: <strong>'+entropy.toFixed(3)+' bits/pixel</strong>. ';
+      html += 'Huffman average code length: <strong>'+avgLen.toFixed(3)+' bits/pixel</strong>. ';
+      html += 'Fixed-length baseline: <strong>8 bits/pixel</strong>. ';
+      html += 'Compression ratio vs. fixed-length: <strong>'+(8/avgLen).toFixed(2)+'&times;</strong>.</p>';
+      html += '<table><tr><th>Gray level</th><th>Pixel count</th><th>Probability</th><th>Huffman code length (bits)</th></tr>';
+      top.forEach(r => {
+        html += '<tr><td>'+r.v+'</td><td>'+r.count+'</td><td>'+r.p.toFixed(4)+'</td><td>'+r.len+'</td></tr>';
+      });
+      html += '</table><p class="recap-note">Showing the 10 most frequent gray levels. As predicted, common levels get short codes and rare levels get long ones.</p>';
+      document.getElementById('huffResults').innerHTML = html;
+      btn.disabled = false;
+      btn.textContent = 'Rebuild';
+    };
+    if(img.complete) run(); else img.onload = run;
+  });
+})();
+</script>

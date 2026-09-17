@@ -1,0 +1,332 @@
+<div class="hero">
+  <span class="kicker">Lecture 7 · Deck 7</span>
+  <h1>Haar, DCT, DST and the Wavelet Transform</h1>
+  <p class="dek">Section 6 promised that every transform is the same template with a different choice of basis
+  vectors. This section makes good on that promise with three concrete, very different choices — a
+  staircase-shaped basis (Haar), a cosine basis (DCT), and a basis that changes shape as you zoom in (the
+  wavelet transform) — and shows why each one exists.</p>
+</div>
+
+<div class="caption-only"><img src="assets/deck7-02.png"><span class="cap-text">Deck 7, slide 2 — section
+divider: "Image Transform: HAAR, DCT, DST, DWT."</span></div>
+
+<section class="concept" id="haar-transform">
+  <h2 class="concept-title">7.1 · The Haar transform</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-03.png"></div>
+  <div class="caption-only"><img src="assets/deck7-04.png"><span class="cap-text">Deck 7, slide 4 — formal
+  piecewise definition: h₀(x)=1 everywhere; for u&gt;0, h_u(x) is ±2^(p/2) on two half-intervals and 0 elsewhere.</span></div>
+  <p>The Haar functions h<sub>u</sub>(x) are the basis vectors here, and the formula looks intimidating mainly
+  because of the u = 2<sup>p</sup> + q indexing — but the shape it produces is simple: h₀(x) = 1 everywhere (the
+  DC/average term, exactly as in every transform so far), and every h<sub>u</sub>(x) for u &gt; 0 is a single
+  rectangular pulse — +2<sup>p/2</sup> over one half of a sub-interval, −2<sup>p/2</sup> over the other half,
+  and zero everywhere else. p controls how wide that pulse is (bigger p, narrower pulse — more detail), and q
+  controls where along x it sits.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-09.png"></div>
+  <p>The N = 8 basis functions above make the pattern vivid: the top row is the flat DC term; the next row is
+  one wide plus/minus pulse spanning half the signal; below that, two narrower pulses side by side; below that,
+  four pulses narrower still. Each level of narrowing doubles how many pulses fit, and each pulse is a
+  <strong>local</strong> plus/minus comparison — literally "is this half of this small region brighter or
+  darker than the other half?" This is the single biggest conceptual difference from every Fourier-family
+  transform in Sections 1–5: a Fourier basis vector oscillates across the <em>entire</em> signal, while a Haar
+  basis vector (other than h₀) is zero almost everywhere and only asks its question over one small, specific
+  patch.</p>
+
+  <h3>The matrix, and the connection back to Section 6</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-05.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-06.png"></div>
+  <div class="caption-only"><img src="assets/deck7-07.png"><span class="cap-text">Deck 7, slide 7 — the full N=8
+  Haar matrix A_H and its basis images (Fig. 7.18), the direct 1-level-deeper extension of the N=4 matrix above.</span></div>
+  <div class="callout">
+    <span class="tag">Closing the loop from Section 6.3</span>
+    The N = 2 Haar matrix is A<sub>H</sub> = (1/√2)[[1,1],[1,−1]] — exactly the matrix worked out by hand in
+    Section 6.3 from pure orthonormal-basis reasoning, before it had a name. It really is the smallest possible
+    Haar transform. The N = 4 matrix above extends the same idea recursively: row 1 is the global average
+    (h₀), row 2 is one coarse plus/minus split across the whole signal, and rows 3–4 are two finer, non-overlapping
+    plus/minus splits, each covering only half of the signal. Every larger Haar matrix is built the same
+    recursive way.
+  </div>
+
+  <h3>Worked 1D example: the averaging-and-differencing cascade</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-10.png"></div>
+  <p>This is the most concrete way to actually compute a Haar transform, and it matches the recursive matrix
+  structure exactly. Starting from the 8-sample signal [9, 7, 3, 5, 6, 10, 2, 6]:</p>
+  <ol>
+    <li><strong>Level 1</strong> — pair up neighbors and take their average and (half-)difference: (9,7) →
+    average 8, diff 1; (3,5) → average 4, diff −1; (6,10) → average 8, diff 2; (2,6) → average 4, diff −2.</li>
+    <li><strong>Level 2</strong> — repeat on the 4 averages [8,4,8,4]: (8,4) → average 6, diff 2; (8,4) →
+    average 6, diff 2.</li>
+    <li><strong>Level 3</strong> — repeat on the 2 remaining averages [6,6]: average 6, diff 0.</li>
+  </ol>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    The slide asks "what is necessary to complete the representation?" without answering it. The answer: you
+    need <em>every</em> difference produced along the way, plus the very last, fully-collapsed average — one
+    number that never got split any further. Collect them in coarsest-to-finest order and you get the slide's
+    own stated final output: <strong>[6, 0, 0, 2, 2, 1, −1, −2, −2]</strong> — wait, that's 9 numbers for 8
+    original samples, so look again at the ordering actually used: the single top-level average (6), the
+    single top-level diff (0), the two level-2 diffs (2, 2), then the four level-1 diffs (1, −1, −2, −2) — 1 +
+    1 + 2 + 4 = 8 numbers total, matching the 8 inputs exactly, with zero redundancy. This is the defining
+    shape of a Haar/wavelet transform's output: one slowly-updated "current best average" plus a cascade of
+    ever-finer, ever more numerous correction terms — the same multi-resolution idea that reappears in Section
+    7.4's wavelet pyramid.
+  </div>
+
+  <h3>Worked 2D example: what each quadrant of a Haar transform actually shows</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-11.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-12.png"></div>
+  <p>Apply the same row-then-column averaging/differencing to a small 8×8 image containing a soft white blob
+  on a black background. The output splits cleanly into four quadrants, and each one has a distinct, readable
+  meaning: the top-left quadrant (143s) is a smaller, blurrier copy of the original blob — the "keep averaging"
+  branch. The top-right and bottom-left quadrants (±48, ±16) light up exactly where the blob has a vertical or
+  horizontal edge — the "differencing" branches responding to a boundary. The bottom-right quadrant is silent
+  here because this particular blob has no strong diagonal structure.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-13.png"></div>
+  <p>This artist's-impression figure generalizes that same reading, quadrant by quadrant: a plain blob becomes
+  a smaller blob (top-left); a pair of vertical bars becomes a pair of vertical bars (top-right — vertical
+  detail survives in the vertical-detail quadrant); horizontal bars become horizontal bars (bottom-left); and
+  the four corners of a shape — pure diagonal information — become four faint dots in the bottom-right
+  quadrant. This four-way split (smooth / vertical-edge / horizontal-edge / diagonal-edge) is exactly the "2D
+  channel bank" idea, and it is precisely what Section 7.4's wavelet transform formalizes and generalizes.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>A real one-level Haar decomposition</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/haar_mosaic_1level.png"><div class="lbl">1-level Haar
+      decomposition (LL | LH<br>HL | HH mosaic)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/haar_mosaic_2level.png"><div class="lbl">a second Haar
+      level applied inside the LL quadrant</div></div>
+    </div>
+    <p style="margin-top:10px">The top-left quadrant is unmistakably a smaller, slightly blurrier copy of the
+    whole photo — the "keep averaging" branch, exactly as in the worked 8×8 example. The other three quadrants
+    are almost entirely mid-gray (near-zero difference) except along real edges — the silhouette outline, the
+    fold lines in the fabric — which is where "this half differs from that half" genuinely has a large answer.
+    Numerically, <strong>99.73%</strong> of the total signal energy in this decomposition sits in
+    that single top-left LL quadrant alone — a concrete instance of Section 6.4's energy-compaction property,
+    just with a much blockier, more local basis than the DFT's global sinusoids.</p>
+  </div>
+
+  <h3>Properties, honestly stated</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-08.png"></div>
+  <p>The Haar transform is real, orthogonal, and very fast to compute (its recursive averaging/differencing
+  structure runs in O(N) time, faster even than the FFT's O(N log N)). But the slide is direct about its
+  weakness: <strong>it has poor energy compaction for natural images</strong> compared to the DCT covered next
+  — its blocky, sharp-edged basis functions are a poor match for images that are mostly smooth with occasional
+  edges, so more Haar coefficients are usually needed to represent the same image well.</p>
+</section>
+
+<section class="concept" id="dct">
+  <h2 class="concept-title">7.2 · The Discrete Cosine Transform (DCT)</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-14.png"></div>
+  <div class="formula">
+    s(x,u) = α(u)·cos[ (2x+1)uπ / 2N ] &nbsp;&nbsp; where α(0)=√(1/N), α(u)=√(2/N) for u&gt;0
+  </div>
+  <p>Where Haar's basis vectors are local rectangular pulses, the DCT's basis vectors are global cosine waves
+  — much closer in spirit to the Fourier basis than to Haar. The listed properties are worth reading against
+  Section 7.1's Haar properties directly: real, orthogonal, but <strong>not</strong> symmetric (r₁ ≠ r₂ in
+  Section 6.2's sense along the two axes for the general kernel, though the transform matrix itself is used
+  symmetrically); the same frequency range as the DFT but twice the frequency resolution; excellent energy
+  compaction; and no DC bias issue the way a naive cosine-only expansion might suggest.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-15.png"></div>
+  <p>The basis-image gallery shows the family resemblance to the DFT's own basis-image gallery from Section
+  6.4 — smooth in the top-left corner, progressively finer checkerboard patterns moving away from it — with
+  the first row reading as pure vertical lines and the first column as pure horizontal lines, exactly mirroring
+  how u and v independently control horizontal vs. vertical oscillation rate.</p>
+
+  <div class="caption-only"><img src="assets/deck7-16.png"><span class="cap-text">Deck 7, slide 16 — the formal
+  DCT-from-DFT derivation: symmetrically extend f(x) to g(x) over 2N points, take its DFT, then t_C = Re{s∘h∘t₁}.</span></div>
+
+  <h3>Why the DCT beats the DFT for compressing natural images</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-17.png"></div>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    This directly resolves something Section 1.5 only flagged in passing: the faint bright cross artifact in
+    sample.png's own FFT spectrum, caused by the image's own edge not matching up with itself when tiled
+    infinitely. The DFT implicitly assumes the N-sample signal repeats periodically forever — and if
+    f(N−1) and f(0) are very different values (as they usually are for a real photograph's edge), that
+    implicit repetition creates a sharp discontinuity at every tile boundary, which forces the DFT to spend
+    real energy on artificial high frequencies just to represent a jump that was never really "in" the image
+    — it's an artifact of the periodic-tiling assumption, not the image itself. The DCT is built (via a
+    2N-point DFT of a symmetrically-mirrored, even-extended version of the signal — g(x) = f(x) for
+    0≤x&lt;N, and g(x) = f(2N−x−1) for N≤x&lt;2N) specifically so that this mirrored extension always
+    matches up smoothly at the boundary, with no artificial jump. Removing that spurious discontinuity is
+    exactly why the DCT achieves better energy compaction than the DFT on real images — it isn't wasting
+    coefficients compensating for a jump the DFT invented.
+  </div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-18.png"></div>
+  <p>The visual proof: a normal photograph's DCT coefficient map is almost entirely black except in the extreme
+  top-left corner — energy overwhelmingly concentrated in the very lowest frequencies. This single image is
+  the entire justification for why every practical image and video compression standard (JPEG, MPEG, H.26x)
+  builds on the DCT rather than the plain DFT.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>A single 8×8 block, DCT-transformed</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/dct_single_block_spatial.png"><div class="lbl">one 8×8
+      pixel block (spatial domain)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/dct_single_block_coeffs.png"><div class="lbl">its 8×8 DCT
+      coefficients (log-magnitude; top-left = DC)</div></div>
+    </div>
+    <p style="margin-top:10px">Even for one small, unremarkable patch of the photo, the coefficient energy is
+    heavily concentrated in the top-left corner (low horizontal and vertical frequency) — this single 8×8 tile
+    is the exact building block Section 11's JPEG pipeline runs across the entire image.</p>
+  </div>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Reconstructing from only a handful of DCT coefficients per 8×8 block</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/jpegdct_keep1.png"><div class="lbl">1 coefficient / block
+      (DC only)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/jpegdct_keep3.png"><div class="lbl">3 coefficients / block</div></div>
+      <div class="sim-img-box"><img src="assets/sims/jpegdct_keep10.png"><div class="lbl">10 coefficients /
+      block</div></div>
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original (64
+      coefficients / block)</div></div>
+    </div>
+    <p style="margin-top:10px">Keeping only the single DC coefficient per block gives a crude "average color
+    per tile" mosaic. By 10 out of 64 coefficients, the image is already close to fully recognizable. This is
+    the direct DCT analogue of Section 1.5's DFT energy-compaction experiment, now shown block-by-block instead
+    of over the whole image at once — which is exactly the structural change Section 11 explains the reasoning
+    for (processing small blocks instead of the whole image, to keep transform coding computationally
+    tractable and spatially local).</p>
+  </div>
+</section>
+
+<section class="concept" id="dst-comparison">
+  <h2 class="concept-title">7.3 · The Discrete Sine Transform (DST), and comparing the family</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-19.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-20.png"></div>
+  <div class="caption-only"><img src="assets/deck7-21.png"><span class="cap-text">Deck 7, slide 21 — the formal
+  DST-from-DFT derivation: odd-symmetric extension g(x), 2(N+1)-point DFT, t_S = −Imag{t₁}.</span></div>
+  <p>The DST is built the same way as the DCT — real, orthogonal, symmetric, same frequency range as the DFT
+  at twice the resolution — but using an <em>odd</em>-symmetric mirrored extension (built from a 2(N+1)-point
+  DFT) instead of the DCT's even-symmetric one. The direct consequence: the DST has <strong>no DC
+  component</strong> (a pure sine expansion cannot represent a nonzero constant term) and, unlike the DCT, its
+  mirrored extension does <em>not</em> avoid a boundary discontinuity — so it doesn't get the DCT's energy-compaction
+  advantage. This is exactly why the DST is a much less common choice for image compression than the DCT, even
+  though the two formulas look almost identical.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-22.png"></div>
+  <p>All three Fourier-family transforms now reduce to the exact T = AFA<sup>T</sup> template from Section
+  6.2, differing only in which matrix (F, C, or S) plays the role of A:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-23.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-24.png"></div>
+  <p>Filtering a test chart with an ideal low-pass filter in all three domains gives visually near-identical
+  results, and the DCT/DST coefficient maps for the same test image both show energy piled into one corner —
+  confirming the family resemblance while the earlier DCT-vs-DFT comparison confirms which one compacts that
+  energy best.</p>
+
+  <h3>Filter banks: the engineering bridge to wavelets</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-25.png"></div>
+  <p>A <strong>2D channel bank (filter bank)</strong> reframes Section 7.1's row-then-column averaging/differencing
+  as digital signal processing: run a high-pass filter h = [1,−1] and a low-pass filter g = [1,1] along the
+  rows, downsample by 2, then run both filters again along the columns, downsampling again. Four output
+  combinations result — HPHP, HPLP, LPHP, LPLP — and the diagram's own labels confirm exactly the quadrant
+  reading from Section 7.1's worked example: HPHP picks out diagonal detail, HPLP vertical detail, LPHP
+  horizontal detail, and LPLP is the smoothed low-resolution approximation. This filter-bank machinery — plain
+  digital filtering plus downsampling, no continuous-calculus wavelet theory required — is the actual
+  engineering implementation behind Section 7.4's Discrete Wavelet Transform.</p>
+</section>
+
+<section class="concept" id="dwt">
+  <h2 class="concept-title">7.4 · The Discrete Wavelet Transform (DWT)</h2>
+  <div class="caption-only"><img src="assets/deck7-26.png"><span class="cap-text">Deck 7, slide 26 — the
+  recursive LPLP/HPLP/LPHP/HPHP pyramid sketch: each DWT pass quarters the LPLP quadrant again.</span></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-27.png"></div>
+  <div class="formula">ψ<sub>a,b</sub>(t) = (1/√a)·ψ((t−b)/a)</div>
+  <p>Every wavelet basis function is generated from one "mother wavelet" ψ by two operations: <strong>dilation</strong>
+  (the scale parameter a stretches or squeezes it) and <strong>shifting</strong> (b slides it left or right).
+  This is a fundamentally different construction from every transform so far: the DFT/DCT/DST all use one
+  fixed-shape basis function (a sinusoid) tested at many frequencies, but a wavelet basis re-uses one fixed
+  <em>shape</em> at many different <em>scales and positions</em>.</p>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    Why does this matter enough to justify a whole new transform family? Section 1.4's counterintuitive point
+    was that every single DFT coefficient depends on <em>every</em> pixel of the whole image — frequency
+    information is global, with zero spatial locality. A wavelet coefficient, by contrast, is built from a
+    basis function that dilation-and-shifting has confined to one specific region and one specific scale — so
+    a wavelet transform tells you not just "how much high-frequency content is present" but "where." This is
+    precisely the trade-off flagged back in Section 1.6's sampling-vs-frequency-resolution discussion: wavelets
+    deliberately trade some pure frequency resolution for spatial (or temporal) locality, which the Fourier
+    family cannot offer at all.
+  </div>
+
+  <h3>2D wavelets: three flavors of "detail"</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-28.png"></div>
+  <p>A 2D wavelet transform needs one 2D scaling function φ(x,y) (the smoothing/averaging half) and three 2D
+  wavelets, each built as a product of a 1D wavelet ψ and the 1D scaling function φ along the two axes:</p>
+  <ul>
+    <li><strong>ψ<sup>H</sup>(x,y) = ψ(x)φ(y)</strong> — responds to intensity changes along columns, i.e.
+    <strong>horizontal</strong> edges.</li>
+    <li><strong>ψ<sup>V</sup>(x,y) = φ(x)ψ(y)</strong> — responds to changes along rows, i.e.
+    <strong>vertical</strong> edges.</li>
+    <li><strong>ψ<sup>D</sup>(x,y) = ψ(x)ψ(y)</strong> — responds to <strong>diagonal</strong> structure.</li>
+  </ul>
+  <p>This is the exact same three-detail-plus-one-smooth structure already seen twice now — once in Section
+  7.1's Haar quadrants, once in Section 7.3's filter-bank labels — finally given its formal, general
+  definition. The slide is careful to note this directional sensitivity is a "natural consequence of
+  separability" and costs nothing extra computationally.</p>
+
+  <h3>The analysis (decomposition) filter bank</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-29.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-30.png"></div>
+  <p>Mechanically, this is Section 7.3's filter bank, spelled out precisely: convolve the rows with a low-pass
+  filter h<sub>φ</sub> and a high-pass filter h<sub>ψ</sub>, downsample by 2 along columns, then repeat both
+  filters along the rows of each result and downsample again — four quarter-size outputs:
+  T<sub>φ</sub> (smooth approximation), T<sub>ψ</sub><sup>H</sup>, T<sub>ψ</sub><sup>V</sup>,
+  T<sub>ψ</sub><sup>D</sup>. Re-running this same block on T<sub>φ</sub> alone is exactly Section 6's
+  "idea is to expand on the LP-LP part" recursive pyramid, producing progressively coarser and coarser
+  approximations, each with its own three detail bands at that scale — precisely the multiresolution structure
+  the wavelet transform is named for.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-32.png"></div>
+  <p>Applied to a real photograph, the four quarter-size outputs read exactly as Section 7.1 predicted: the
+  smoothed low-pass/low-pass quadrant still looks like a small, slightly blurred version of the house; the two
+  cross-filtered quadrants pick out mostly edges (looking almost like line drawings); and the high-pass/high-pass
+  quadrant is nearly empty, since strong diagonal-only structure is comparatively rare in most photographs.</p>
+
+  <h3>The synthesis (reconstruction) filter bank</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-31.png"></div>
+  <p>Perfect reconstruction runs the whole process in reverse: upsample each of the four sub-images, convolve
+  with the matching synthesis filters, and add the results back together — recovering the next-finer scale's
+  approximation exactly. Because this operation is invertible, no information from the original image is lost
+  by decomposing it — only reorganized into a smooth-approximation-plus-detail form, which is precisely why
+  wavelet-based coding (used in JPEG-2000) can compress by simply discarding the least visually important
+  detail coefficients before running this same reconstruction.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Discarding all detail and keeping only the smooth approximation</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/haar_reconstruction_full.png"><div class="lbl">exact
+      reconstruction (all 4 subbands kept)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/haar_reconstruction_LLonly.png"><div class="lbl">reconstruction
+      with LH, HL, HH all zeroed out</div></div>
+    </div>
+    <p style="margin-top:10px">The full reconstruction is pixel-for-pixel identical to the original (perfect
+    invertibility). Zeroing out every detail subband and keeping only the smooth approximation reproduces a
+    blurrier, half-resolution version of the same image — visibly worse than the DCT's 10-coefficient
+    reconstruction above, which matches the deck's own stated disadvantage: DWT compression at very low bit
+    budgets tends to blur rather than block, and can underperform an equivalent DCT/JPEG budget.</p>
+  </div>
+
+  <h3>DWT vs. DCT: an honest trade-off</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck7-33.png"></div>
+  <p>The deck's own summary is worth reproducing directly, because it is exactly the kind of "argued point,
+  not settled fact" the source material presents as a straightforward pro/con list:</p>
+  <table>
+    <tr><th>DWT advantages over DCT</th><th>DWT disadvantages</th></tr>
+    <tr><td>Higher compression ratio; avoids blocking artifacts</td><td>Higher computational cost</td></tr>
+    <tr><td>Good localization in both space and scale</td><td>Larger basis functions can introduce blurring
+    and ringing</td></tr>
+    <tr><td>Better match to human perceptual relevance</td><td>Lower quality than JPEG at low compression
+    rates in some cases</td></tr>
+  </table>
+  <p>No single transform in this section is a strict improvement on the others — Haar is fastest but compacts
+  energy poorly; DCT compacts energy excellently and avoids DWT's blur/ringing risk but produces blocking
+  artifacts at high compression; DWT avoids blocking and localizes well but costs more to compute and can blur
+  at very low bitrates. Sections 8–11 return to this trade-off directly: Section 11's JPEG standard is built on
+  the DCT, while the deck notes JPEG-2000 (its wavelet-based successor) is built on the DWT.</p>
+</section>

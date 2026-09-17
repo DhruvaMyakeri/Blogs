@@ -1,0 +1,400 @@
+<div class="hero">
+  <span class="kicker">Lecture 1 · Deck 1, and Deck 2 (recap + worked examples)</span>
+  <h1>Frequency Domain &amp; the Fourier Transform</h1>
+  <p class="dek">Every image you have ever looked at can be redescribed, with zero loss of information, as a sum of
+  waves. That sentence sounds like a trick — it is not. This section builds the idea up from scratch: what
+  "frequency" even means for something that is not a sound, why Fourier's 200-year-old claim about periodic
+  functions applies to a photograph, and how the continuous idea gets turned into something a computer can
+  actually compute (the DFT).</p>
+</div>
+
+<section class="concept" id="frequency-in-images">
+  <h2 class="concept-title">1.1 · What does "frequency" mean in an image?</h2>
+  <p>In audio, frequency is easy to picture: a signal that oscillates quickly (say, 5000 times a second) is
+  "high frequency" — a whistle. A signal that oscillates slowly is "low frequency" — a bass hum. An image has
+  no time axis, so where would frequency even come from?</p>
+  <p>The trick is to replace <em>time</em> with <em>space</em>. Instead of asking "how fast does the air
+  pressure oscillate as time passes," we ask "how fast does the pixel intensity oscillate as you move across
+  the image." That is the entire definition. Nothing about color, brightness level, or content — purely: how
+  quickly does gray-level change as you slide along a row or column of pixels.</p>
+
+  <div class="slide-wrap">
+    <img class="slide-shot" src="assets/deck1-02.png">
+  </div>
+  <p>The classic demonstration: split a photograph into a low-frequency version (the smooth blur on the left)
+  and a high-frequency version (the edge-only sketch on the right). Neither half alone is the photo — but
+  between the two of them, every bit of the original is accounted for. This is the same low/high split
+  previewed with sample.png at the end of this section, just with a face instead of a gradient/checkerboard.</p>
+
+  <div class="slide-wrap">
+    <div class="slide-col">
+      <img class="slide-shot" src="assets/deck1-03.png">
+      <div class="slide-cap">Deck 1, slide 3 — a smooth left-to-right gradient</div>
+    </div>
+    <div class="text-col">
+      <h3>Low spatial frequency = slow change</h3>
+      <p>Look at the gradient square. Walk one scan line straight across it (the red line) and plot the
+      intensity you see, and you get slide 4's curve: a smooth, gently rising ramp from black to white. Nothing
+      jumps. Neighboring pixels are always close in value. That gradual rate of change <em>is</em> what "low
+      spatial frequency" means — not "dim" or "gray," but <em>slowly-varying</em>.</p>
+    </div>
+  </div>
+  <div class="slide-wrap">
+    <img class="slide-shot" src="assets/deck1-04.png">
+  </div>
+
+  <div class="slide-wrap">
+    <div class="slide-col">
+      <img class="slide-shot" src="assets/deck1-05.png">
+      <div class="slide-cap">Deck 1, slide 5 — stripes, checkerboards, zig-zags</div>
+    </div>
+    <div class="text-col">
+      <h3>High spatial frequency = fast change</h3>
+      <p>Now scan across the checkerboard. The intensity signal you get (slide 6) is a square wave slamming
+      between 0 and 255 every few pixels. That rapid back-and-forth is "high spatial frequency." Sharp edges,
+      fine texture, noise, and thin repeated patterns all live here, because all of them force intensity to
+      change over a very short pixel distance.</p>
+    </div>
+  </div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck1-06.png"></div>
+
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    "Frequency" in an image is not a property of one pixel — it only exists as a description of a
+    <em>neighborhood</em>. A single mid-gray pixel carries no frequency information at all; frequency is about
+    how that pixel's value relates to the pixels around it. This is why frequency-domain reasoning always
+    talks about the whole image (or at least a whole patch) at once, never a single sample in isolation.
+  </div>
+
+  <h3>Real photographs mix both, everywhere, at once</h3>
+  <p>A real image is not purely smooth or purely stripy — every photograph is a blend of both extremes at
+  every location. Skin and sky are low-frequency (values barely change pixel to pixel); hair strands, fabric
+  weave, and eyelashes are high-frequency (values swing wildly pixel to pixel), and they sit right next to each
+  other in the same photo.</p>
+  <div class="slide-wrap">
+    <img class="slide-shot" src="assets/deck1-07.png">
+    <img class="slide-shot" src="assets/deck1-08.png">
+  </div>
+  <p>Slide 8 makes this concrete with an intensity trace along one scan line of a real portrait: the flat
+  stretches over the forehead and background are the low-frequency parts of the signal, and every sharp notch
+  (hairline, eyebrow, iris, lips, jacket edge) is a burst of high frequency. A Fourier transform is simply a
+  tool that takes a signal like this and reports <em>how much of each rate-of-change is present</em>, without
+  caring where in the image it occurred.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Seeing low vs. high frequency in the working image for this guide</h4>
+    <p>Every simulation in this guide runs on the same source image, so you can track it across every filter
+    and transform. Compare the extreme low-pass (mostly the low-frequency content — flat regions and gross
+    shape) and extreme high-pass (mostly high-frequency content — edges and texture) versions below; the
+    filters themselves are explained in detail in Sections 3 and 4, but the picture is worth previewing now.</p>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original (grayscale)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_gauss_10.png"><div class="lbl">low frequencies only<br>(D0 = 10, heavy blur)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/hpf_ideal_30.png"><div class="lbl">high frequencies only<br>(D0 = 30)</div></div>
+    </div>
+    <p style="margin-top:10px">Notice the blurred version keeps the overall shape, pose, and lighting — every
+    smooth transition survives — but every edge is gone. The high-pass version is the mirror image: shape and
+    lighting are gone, but every outline (the silhouette, the folds of the trousers, the fingers) survives
+    razor-sharp. Between them, the two capture everything in the original.</p>
+  </div>
+</section>
+
+<section class="concept" id="fourier-claim">
+  <h2 class="concept-title">1.2 · Fourier's claim: any periodic signal is a sum of sine waves</h2>
+  <p>Jean-Baptiste Joseph Fourier's claim, stripped of notation, is startling: take <em>any</em> periodic
+  function — no matter how jagged, asymmetric, or strange — and it can be built exactly by adding up plain
+  sine and cosine waves of different frequencies, each scaled by its own coefficient.</p>
+  <div class="slide-wrap">
+    <img class="slide-shot" src="assets/deck1-09.png">
+  </div>
+  <p>Slide 9's stack makes the claim visually undeniable: the top few rows are pure, boring sine waves at
+  increasing frequency. Add enough of them together with the right weights, and the bottom row — a genuinely
+  irregular, complicated-looking signal — falls out. That bottom signal is not "kind of like" a sum of sines;
+  it is <em>exactly</em> the sum, no approximation needed (for a periodic signal, given infinitely many terms).</p>
+
+  <h3>Fourier series: the formula behind the claim</h3>
+  <div class="slide-wrap">
+    <img class="slide-shot" src="assets/deck1-12.png">
+  </div>
+  <div class="formula">
+    f(t) = Σ<sub>n=−∞</sub><sup>∞</sup> c<sub>n</sub> e <sup>j·2πnt/T</sup> &nbsp;&nbsp;&nbsp;
+    where&nbsp; c<sub>n</sub> = (1/T) ∫<sub>−T/2</sub><sup>T/2</sup> f(t) e <sup>−j·2πnt/T</sup> dt
+  </div>
+  <p>Read the two pieces separately, because each answers a different question:</p>
+  <ul>
+    <li><strong>The sum</strong> says: f(t) is built from an infinite ladder of sinusoids at frequencies
+    that are whole-number multiples (harmonics) of the fundamental 1/T.</li>
+    <li><strong>The integral for c<sub>n</sub></strong> says: to find out <em>how much</em> of harmonic
+    n is present in f(t), multiply f(t) by that harmonic's own wave and integrate (sum up) the result over
+    one period. This "multiply-and-integrate" trick is called <em>correlation</em>, and it is the single
+    most important computational idea in this entire unit — every transform in this course (DFT, DCT, Haar,
+    wavelets) is a different family of "reference waves" that you correlate the signal against.</li>
+  </ul>
+  <p>The e<sup>jθ</sup> notation is Euler's shorthand for cos θ + j·sin θ — so
+  A·sin(ωx + φ) with amplitude A, angular frequency ω, and phase angle φ is exactly the same physical wave, just
+  written differently. Both forms appear interchangeably on the slides.</p>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    Notice c<sub>n</sub> is generally a <em>complex</em> number, not just an amplitude. That is not a
+    mathematical inconvenience — the complex value simultaneously encodes two real numbers: <em>how much</em>
+    of that frequency is present (its magnitude, |c<sub>n</sub>|) and <em>where the wave is shifted to</em>
+    (its phase, ∠c<sub>n</sub>). When you later see a "Fourier spectrum" image, you are looking at only the
+    magnitude half of this information — the phase is thrown away for visualization, even though the phase is
+    at least as important for reconstructing the image (a classic demonstration: swap the phase of two
+    unrelated images while keeping their magnitudes, and the result looks like the phase-donor image, not the
+    magnitude-donor).
+  </div>
+
+  <h3>From a periodic sum to a continuous transform</h3>
+  <p>The Fourier series only works if f(t) is periodic. Most real signals — including a single photograph —
+  are not periodic at all. Fourier's transform is the generalization that removes this restriction, by letting
+  the period T grow to infinity, which turns the discrete sum over harmonics into a continuous integral over
+  every possible frequency μ:</p>
+  <div class="slide-wrap">
+    <img class="slide-shot" src="assets/deck1-13.png">
+  </div>
+  <div class="formula">
+    Forward: &nbsp; F(μ) = ∫<sub>−∞</sub><sup>∞</sup> f(t) e <sup>−j·2πμt</sup> dt <br>
+    Inverse: &nbsp; f(t) = ∫<sub>−∞</sub><sup>∞</sup> F(μ) e <sup>j·2πμt</sup> dμ
+  </div>
+  <p>F(μ) and f(t) are called a <strong>Fourier transform pair</strong> — each is a complete, lossless
+  redescription of the other. Nothing is thrown away going from f(t) to F(μ); you could run the inverse
+  transform and get f(t) back exactly. This reversibility is what makes "go to the frequency domain, do
+  something useful, come back" a safe and popular strategy throughout the rest of this unit.</p>
+</section>
+
+<section class="concept" id="why-bother">
+  <h2 class="concept-title">1.3 · Why bother? The computational payoff</h2>
+  <p>Before wading further into the mathematics, it is worth answering the practical question: why would
+  anyone convert an image into the frequency domain just to filter it, instead of filtering it directly with a
+  spatial kernel (as you would have done in Unit 1)?</p>
+  <div class="slide-wrap">
+    <img class="slide-shot" src="assets/deck1-10.png">
+  </div>
+  <p>For an M×N image filtered with an m×n kernel:</p>
+  <ul>
+    <li>Spatial-domain convolution costs on the order of <strong>M·N·m·n</strong> operations for a
+    general (non-separable) kernel — every output pixel needs its own little weighted sum over the whole
+    kernel footprint.</li>
+    <li>Frequency-domain filtering costs on the order of <strong>2·M·N·log₂(M·N)</strong> operations — the
+    2 is because you need one forward FFT and one inverse FFT.</li>
+  </ul>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck1-11.png"></div>
+  <p>The crossover shows up exactly where you would expect: for small kernels, plain spatial convolution is
+  cheaper (less overhead). But <code>m·n</code> grows quadratically with kernel size, while
+  <code>log₂(M·N)</code> barely grows at all — so once a kernel gets large, FFT-based filtering wins by an
+  increasingly wide margin. This is why, for example, large-radius blurs in image-editing software are
+  typically implemented via the FFT rather than direct convolution.</p>
+
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    This entire efficiency argument is built on a fact the deck uses constantly from Section 3 onward but
+    never actually states: the <strong>Convolution Theorem</strong>. It says convolution in the spatial domain
+    is exactly equivalent to plain multiplication in the frequency domain:
+    <div class="formula" style="margin-top:10px">f(x,y) ✳ h(x,y) &nbsp;⟺&nbsp; F(u,v) · H(u,v)</div>
+    where ✳ is spatial convolution and ⟺ marks a Fourier transform pair. This single fact is <em>why</em>
+    frequency-domain filtering is possible at all: "filtering" (convolving with a kernel h) in the spatial
+    domain becomes "multiply every frequency component by a number H(u,v)" in the frequency domain — no sliding
+    windows, no per-pixel sums, just one multiplication per frequency. Every low-pass/high-pass filter you will
+    meet in Sections 3–5 is defined as an H(u,v) precisely because of this equivalence.
+  </div>
+</section>
+
+<section class="concept" id="discrete-fourier-transform">
+  <h2 class="concept-title">1.4 · From continuous to discrete: the DFT</h2>
+  <div class="caption-only"><img src="assets/deck1-14.png"><span class="cap-text">Deck 1, slide 14 — section
+  divider marking the shift from the continuous Fourier transform (§1.2–1.3) to its discrete counterpart.</span></div>
+  <p>A digital image is not a continuous function — it is a finite grid of samples. The Discrete Fourier
+  Transform (DFT) is the version of the Fourier transform built for exactly that setting: a finite number of
+  samples in, a finite number of frequency components out, with no integrals anywhere (just finite sums, which
+  a computer can execute directly).</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck1-15.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck1-16.png"></div>
+  <div class="formula">
+    Forward DFT: &nbsp; F(u) = Σ<sub>x=0</sub><sup>M−1</sup> f(x) e <sup>−j·2π·ux/M</sup> &nbsp;&nbsp; for u = 0,1,…,M−1 <br>
+    Inverse DFT: &nbsp; f(x) = (1/M) Σ<sub>u=0</sub><sup>M−1</sup> F(u) e <sup>j·2π·ux/M</sup> &nbsp;&nbsp; for x = 0,1,…,M−1
+  </div>
+  <p>Same idea as the continuous transform — correlate the signal against reference waves of every candidate
+  frequency — just restricted to M discrete samples and M discrete frequency slots. The slides use a small
+  notation convention worth pinning down, because it recurs for the rest of the unit:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-26.png"></div>
+  <table>
+    <tr><th>Symbol</th><th>Used for</th></tr>
+    <tr><td><code>m, n</code></td><td>discrete dummy variables inside derivations</td></tr>
+    <tr><td><code>x, y</code></td><td>spatial (pixel) coordinates</td></tr>
+    <tr><td><code>u, v</code></td><td>frequency-domain coordinates</td></tr>
+  </table>
+
+  <h3>What is the DFT actually asking? ("Varying u")</h3>
+  <p>The formula is compact but opaque on first read. The most useful way to actually understand it is to
+  freeze everything except u and watch what happens as u increases one step at a time — this is the single
+  best intuition-building slide in the whole deck.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck1-17.png"></div>
+  <ul>
+    <li><strong>u = 0:</strong> the reference wave e<sup>−j2π(0)x/M</sup> collapses to exactly 1 for every x
+    (no oscillation at all). So F(0) = Σ f(x) — literally just the sum of every pixel value. Divide by M and
+    you get the plain average brightness of the whole image. This is called the <strong>DC component</strong>
+    (a term borrowed from electronics: "direct current," i.e. the zero-frequency, non-oscillating part of a
+    signal), and it encodes overall illumination — nothing about shape or detail.</li>
+    <li><strong>u = 1:</strong> the reference wave now completes exactly one full oscillation across the whole
+    signal. F(1) answers "how much does the image resemble one slow wave stretched across its full width?" —
+    this is the lowest non-trivial frequency.</li>
+    <li><strong>u = 2, 3, …:</strong> the reference wave packs in more and more oscillations. Larger u values
+    are correlated against faster wiggling references, so they pick out finer and finer spatial detail — by
+    u = 7 (for an 8-sample signal) you are testing for the fastest possible alternation the sampling grid can
+    represent.</li>
+  </ul>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    Every single F(u) is computed from <em>every single</em> pixel of the input — the sum runs over all of
+    x each time. There is no sense in which "F(u) lives at some location" the way a pixel lives at some
+    location; each frequency coefficient is a global summary statistic of the entire signal. This is exactly
+    why frequency-domain filtering is a whole-image operation and cannot, by itself, target one region of an
+    image (that limitation is part of the motivation for the wavelet and block-transform methods you will meet
+    in Sections 7 and 11, which trade some frequency resolution for spatial locality).
+  </div>
+
+  <h3>Worked example: computing a 4-point DFT by hand</h3>
+  <p>The abstraction is easier to trust after running it once with real numbers. Take four samples
+  f = [1, 2, 4, 4] (M = 4):</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck1-18.png"></div>
+  <p>Walking through F(0) and F(1) explicitly:</p>
+  <div class="formula">
+    F(0) = f(0)+f(1)+f(2)+f(3) = 1+2+4+4 = <strong>11</strong> &nbsp;(the DC term — matches "just add
+    everything up")<br><br>
+    F(1) = Σ f(x)·e<sup>−j2π(1)x/4</sup> = 1·e<sup>0</sup> + 2·e<sup>−jπ/2</sup> + 4·e<sup>−jπ</sup> + 4·e<sup>−j3π/2</sup>
+    = <strong>−3 + 2j</strong>
+  </div>
+  <p>(F(2) and F(3) follow the identical mechanical process with u = 2 and u = 3, giving −(1+0j) and
+  −(3+2j) respectively — the slide states these without re-deriving them since the pattern is now
+  established.)</p>
+  <p>Running the inverse DFT on the resulting {F(u)} set reconstructs f(0) = 1 exactly:</p>
+  <div class="formula">
+    f(0) = (1/4)·[F(0)+F(1)+F(2)+F(3)] = (1/4)[11 −3+2j −1 −3−2j] = (1/4)[4] = <strong>1</strong> ✓
+  </div>
+  <p>The imaginary parts cancel out in the sum precisely because f(x) was a real-valued signal to begin with —
+  a useful sanity check to keep in mind when you compute these by hand: if your final f(x) comes out with a
+  leftover imaginary part, a sign or index has gone wrong somewhere in the forward transform.</p>
+
+  <h3>The DFT is just a matrix multiplication</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck1-19.png"></div>
+  <p>Every one of those per-u summations can be stacked into a single matrix equation <strong>F = W·f</strong>,
+  where W is an M×M matrix built entirely from powers of a single complex number
+  W = e<sup>−j2π/N</sup> (this specific W is sometimes called a <em>twiddle factor</em>). This reframing is
+  what makes the Fast Fourier Transform (FFT) possible: the FFT is not a different transform from the DFT — it
+  is the exact same F = W·f matrix multiplication, computed by exploiting repeated structure inside W so the
+  cost drops from the naive O(M²) (a full matrix-vector multiply) down to the O(M log M) figure used in the
+  efficiency argument back in Section 1.3.</p>
+</section>
+
+<section class="concept" id="two-d-dft">
+  <h2 class="concept-title">1.5 · From 1D to 2D: transforming an actual image</h2>
+  <p>An image is a 2D grid, so it needs a frequency coordinate in each direction: u for the horizontal
+  direction, v for the vertical. The 2D DFT is simply the 1D idea applied along both axes at once:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck1-20.png"></div>
+  <div class="formula">
+    F(u,v) = Σ<sub>x=0</sub><sup>M−1</sup> Σ<sub>y=0</sub><sup>N−1</sup> f(x,y) e <sup>−j2π(ux/M + vy/N)</sup> <br>
+    f(x,y) = (1/MN) Σ<sub>u=0</sub><sup>M−1</sup> Σ<sub>v=0</sub><sup>N−1</sup> F(u,v) e <sup>j2π(ux/M + vy/N)</sup>
+  </div>
+  <p>f(x,y) is the M×N image; F(u,v) is its 2D spectrum — a grid of the same size, where each entry says how
+  strongly the image resembles a 2D sinusoidal grating oscillating at rate u along x and rate v along y.</p>
+
+  <h3>Worked example: why a set of stripes becomes exactly three dots</h3>
+  <p>Deck 2 revisits the 2D DFT with a worked example that is worth studying closely, because it is the
+  cleanest possible bridge between the formula and an actual spectrum image.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-31.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-32.png"></div>
+  <p>A single 1D cosine wave has a 1D spectrum |F(k)| made of three spikes: one at the DC position (k=0) and
+  two symmetric spikes at ±k₀, where k₀ is the wave's own frequency. Stretch that cosine into vertical stripes
+  (a 2D pattern that only varies along x, not along y) and the 2D spectrum is the same three-spike story, just
+  laid out along the k<sub>x</sub> axis: one dot at the origin, and two dots straddling it symmetrically.</p>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    The slide poses "what do the three dots correspond to?" as an open question, so it's worth answering
+    directly. A single cosine cos(2πk₀x) is <em>not</em> a single-frequency signal in the complex-exponential
+    sense the DFT uses — by Euler's formula, cos(2πk₀x) = ½e<sup>j2πk₀x</sup> + ½e<sup>−j2πk₀x</sup>, i.e. it is
+    the sum of a positive-frequency and a negative-frequency component in equal measure. That gives two of the
+    three dots. The third, at the very center, is the DC term: the stripe pattern's average brightness, exactly
+    as in the 1D case. This ±k₀ mirroring is not specific to this one example — <em>any</em> real-valued image
+    has a spectrum that is conjugate-symmetric about the origin (F(−u,−v) = F*(u,v)), so every spectrum you
+    ever look at in this unit will show this same mirrored structure.
+  </div>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>The actual 2D magnitude spectrum</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">f(x,y) — spatial domain</div></div>
+      <div class="sim-img-box"><img src="assets/sims/fft_spectrum.png"><div class="lbl">log |F(u,v)| — frequency
+      domain, DC shifted to center</div></div>
+    </div>
+    <p style="margin-top:10px">Two things to notice, both direct consequences of what you just derived above.
+    First, the spectrum is symmetric about the exact center — flip it 180° and it looks the same — which is the
+    F(−u,−v) = F*(u,v) conjugate-symmetry property showing up in a real photograph instead of a toy cosine.
+    Second, almost all of the energy is crammed into the bright blob and cross right at the center: real
+    photographs are overwhelmingly low-frequency, because most of any photo is smoothly-shaded regions rather
+    than stripes. The faint bright cross running exactly horizontal and vertical through the center is a
+    give-away artifact of the image's own rectangular border and any strong horizontal/vertical edges in the
+    scene (here, the frame edges and the horizon-like tonal boundary) — the DFT implicitly assumes the image
+    tiles infinitely, so a sharp left/right or top/bottom edge mismatch behaves like an added high-frequency
+    step function along that one axis.</p>
+  </div>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png — a preview of Section 8</span>
+    <h4>How much of the spectrum do you actually need?</h4>
+    <p>One more experiment previews why this whole unit ends in image <em>compression</em>. Keep only the
+    largest-magnitude DFT coefficients (zero out the rest) and reconstruct with the inverse DFT:</p>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/dft_trunc_1pct.png"><div class="lbl">top 1% of coefficients<br>(98.8% of energy)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/dft_trunc_5pct.png"><div class="lbl">top 5%<br>(99.7% of energy)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/dft_trunc_15pct.png"><div class="lbl">top 15%<br>(99.9% of energy)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original<br>(100% — all 150,672 coefficients)</div></div>
+    </div>
+    <p style="margin-top:10px">Throwing away 99% of the coefficients (keeping only 1,506 of 150,672) still
+    recovers 98.8% of the signal's energy and a visually near-perfect image. This is not a coincidence specific
+    to this picture — it is the general phenomenon of <strong>energy compaction</strong>: natural images
+    concentrate almost all of their energy into a small number of transform coefficients. Every compression
+    scheme from Section 6 onward (matrix transforms, DCT, Haar, JPEG) exists to exploit exactly this fact.</p>
+  </div>
+</section>
+
+<section class="concept" id="deck2-recap">
+  <h2 class="concept-title">1.6 · Recap slides (Deck 2)</h2>
+  <div class="caption-only"><img src="assets/deck2-21.png"><span class="cap-text">Deck 2, slide 21 — "Lecture
+  2b" divider marking where Deck 2 switches from aliasing (Section 2) back to re-teaching the DFT.</span></div>
+  <p class="recap-note">Deck 2 re-teaches the 1D and 2D DFT material above nearly slide-for-slide before moving
+  on to its own new material on sampling and aliasing (Section 2). The screenshots below are included for
+  completeness but are not re-explained here — see 1.4 and 1.5 above.</p>
+  <div class="caption-only"><img src="assets/deck2-22.png"><span class="cap-text">Deck 2, slide 22 — recap of
+  "Discrete Fourier Transforms in 1 Variable" (see §1.4).</span></div>
+  <div class="caption-only"><img src="assets/deck2-23.png"><span class="cap-text">Deck 2, slide 23 — recap,
+  continued.</span></div>
+  <div class="caption-only"><img src="assets/deck2-24.png"><span class="cap-text">Deck 2, slide 24 — recap,
+  continued.</span></div>
+  <div class="caption-only"><img src="assets/deck2-25.png"><span class="cap-text">Deck 2, slide 25 — "DFT and
+  IDFT for 1 variable," same formulas as §1.4.</span></div>
+  <div class="text-col" style="margin:14px 0">
+    <h3>New here: the sampling ↔ frequency-resolution trade-off</h3>
+    <p>Slide 27 introduces one genuinely new relationship worth pulling out on its own, because Section 2 leans
+    on it heavily: if f(x) consists of M samples spaced ΔT apart, the record length is T = M·ΔT, and the
+    resulting spacing between frequency bins is Δu = 1/(M·ΔT) = 1/T.</p>
+  </div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-27.png"></div>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    Read this as a trade-off, not just a formula: to get finer frequency resolution (smaller Δu, i.e. the
+    ability to tell two nearby frequencies apart), you must either sample for a longer record length T, or take
+    more samples M at the same spacing. You cannot get high resolution in both space and frequency for free —
+    this is a discrete-signal cousin of the uncertainty principle, and it is part of the motivation for the
+    wavelet transform in Section 7, which is specifically designed to trade some frequency resolution back for
+    spatial locality.
+  </div>
+  <div class="caption-only"><img src="assets/deck2-28.png"><span class="cap-text">Deck 2, slide 28 — the same
+  4-point DFT worked example as §1.4.</span></div>
+  <div class="caption-only"><img src="assets/deck2-29.png"><span class="cap-text">Deck 2, slide 29 — pointer to
+  the same DFT/FFT explainer video.</span></div>
+  <div class="caption-only"><img src="assets/deck2-30.png"><span class="cap-text">Deck 2, slide 30 — recap of
+  the 2D DFT/IDFT formula (see §1.5).</span></div>
+</section>

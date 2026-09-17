@@ -1,0 +1,189 @@
+<div class="hero">
+  <span class="kicker">Lecture 6 · Deck 6</span>
+  <h1>Matrix-Based Transforms &amp; Basis Images</h1>
+  <p class="dek">Everything so far — the Fourier transform, the DFT, every low/high-pass filter — has been one
+  specific transform. This section pulls the camera back and asks: what do all of these techniques actually
+  have in common, mathematically? The answer turns every transform in this unit (Fourier, and soon Haar, DCT,
+  DST, wavelets) into a single, reusable template: pick a matrix, multiply.</p>
+</div>
+
+<div class="caption-only"><img src="assets/deck6-02.png"><span class="cap-text">Deck 6, slide 2 — the full Unit 2
+topic map (frequency domain → transforms → compression), matching this guide's own three-part arc.</span></div>
+<div class="caption-only"><img src="assets/deck6-03.png"><span class="cap-text">Deck 6, slide 3 — section
+divider: "Lecture 6: Image Transform Introduction."</span></div>
+
+<section class="concept" id="vector-space-prelims">
+  <h2 class="concept-title">6.1 · The linear-algebra vocabulary underneath every transform</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-04.png"></div>
+  <p>A handful of definitions get reused constantly from here to the end of the unit, so it's worth being
+  precise about each one before the machinery starts moving:</p>
+  <ul>
+    <li><strong>Vector space</strong> — any collection of objects that can be added together and scaled, and
+    still land back inside the same collection. An image row, an entire image, and a plain arrow in 2D space
+    are all "vectors" in this sense.</li>
+    <li><strong>Inner product</strong> — a rule ⟨u,v⟩ for combining two vectors into a single number, obeying a
+    short list of sane axioms (symmetry under conjugation, linearity, positivity). The ordinary dot product is
+    the most familiar example.</li>
+  </ul>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-05.png"></div>
+  <div class="formula">
+    ‖z‖ = √⟨z,z⟩ &nbsp; (length / norm) &nbsp;&nbsp;&nbsp;&nbsp;
+    θ = cos<sup>−1</sup>( ⟨z,w⟩ / ‖z‖‖w‖ ) &nbsp; (angle between two vectors)
+  </div>
+  <p>Two vectors are <strong>orthogonal</strong> when ⟨z,w⟩ = 0, i.e. θ = 90°. This single fact —
+  "orthogonal means zero inner product" — is the fact every transform in this unit is built to exploit.</p>
+
+  <h3>Basis vectors: describing any vector as a recipe of "how much of each ingredient"</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-06.png"></div>
+  <p>A <strong>basis</strong> {w₀, w₁, w₂, …} for a vector space is a set of vectors from which
+  <em>every</em> vector z in the space can be built as a weighted sum z = α₀w₀ + α₁w₁ + α₂w₂ + …. If the basis
+  vectors are pairwise orthogonal and each has length 1 (⟨w<sub>k</sub>,w<sub>l</sub>⟩ = δ<sub>kl</sub>, the
+  Kronecker delta — 1 when k = l, 0 otherwise), the basis is called <strong>orthonormal</strong>.</p>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    Section 1.4 defined the DFT coefficient F(u) via an explicit correlation sum, and it looked like a special
+    trick specific to sinusoids. It wasn't. Watch what happens when you take the inner product of z with one
+    particular basis vector w<sub>i</sub>:
+  </div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-07.png"></div>
+  <div class="formula">
+    ⟨w<sub>i</sub>, z⟩ = ⟨w<sub>i</sub>, α₀w₀ + α₁w₁ + …⟩ = α₀⟨w<sub>i</sub>,w₀⟩ + α₁⟨w<sub>i</sub>,w₁⟩ + …
+  </div>
+  <p>Because the basis is orthonormal, every single term on the right is zero <em>except</em> the one where the
+  index matches i (since ⟨w<sub>i</sub>,w<sub>i</sub>⟩ = 1) — every other term vanishes by definition of
+  orthogonality. The whole sum collapses to just α<sub>i</sub>:</p>
+  <div class="formula">α<sub>i</sub> = ⟨w<sub>i</sub>, z⟩</div>
+  <p>This is exactly Section 1.4's "how much of frequency u is present" question, generalized completely: for
+  <em>any</em> orthonormal basis, the coefficient of the i-th basis vector is found the same way — take the
+  inner product of the signal with that one basis vector. The DFT's "multiply by a reference wave and sum" was
+  never special to sinusoids; it is what you always do once you've chosen an orthonormal basis. Haar, DCT, and
+  DST (Section 7) are just different choices of basis plugged into this identical formula.</p>
+</section>
+
+<section class="concept" id="matrix-transforms">
+  <h2 class="concept-title">6.2 · Every transform is one matrix multiplication</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-08.png"></div>
+  <div class="formula">
+    T(u) = Σ<sub>x=0</sub><sup>N−1</sup> f(x)·r(x,u) &nbsp;&nbsp;(forward) &nbsp;&nbsp;&nbsp;&nbsp;
+    f(x) = Σ<sub>u=0</sub><sup>N−1</sup> T(u)·s(x,u) &nbsp;&nbsp;(inverse)
+  </div>
+  <p>This is the general template every 1D transform in this course fits into. r(x,u) and s(x,u) — the
+  <strong>forward</strong> and <strong>inverse transformation kernels</strong> — depend only on the indices x
+  and u, never on the actual pixel values. Swap out r and s for a different formula and you get a completely
+  different transform (Fourier, Haar, DCT, …) using the exact same two-line template.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-09.png"></div>
+  <p>The inverse-transform sum is literally Section 6.1's "z = α₀w₀ + α₁w₁ + …" recipe again: T(i) plays the
+  role of the coefficient α<sub>i</sub>, and s(x,i) plays the role of the i-th basis vector w<sub>i</sub>.
+  Whenever s(x,u) happens to be an orthonormal basis, Section 6.1's result applies directly: T(u) = ⟨s(x,u),
+  f(x)⟩.</p>
+
+  <h3>Packing it all into one matrix multiply</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-10.png"></div>
+  <p>Stack every basis vector s<sub>u</sub> as a row of a matrix A. Then computing all N coefficients T(u) at
+  once — for every u simultaneously — is nothing more than one matrix-vector product:</p>
+  <div class="formula">t = Af</div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-11.png"></div>
+  <div class="formula">f = A<sup>T</sup>t &nbsp;&nbsp;(since AA<sup>T</sup> = I when A's rows are orthonormal)</div>
+  <p>t = Af and f = A<sup>T</sup>t together are the <strong>matrix-based transform pair</strong>. Because A's
+  rows are real and orthonormal, this is called an <strong>orthogonal transform</strong>, and it has a genuinely
+  useful physical property: it <em>preserves</em> inner products, lengths, and angles between vectors —
+  ⟨f₁,f₂⟩ = ⟨t₁,t₂⟩ = ⟨Af₁,Af₂⟩. Transforming a signal doesn't stretch, shrink, or distort it in any way that a
+  dot product could detect; it only re-expresses the same vector in a different, rotated coordinate system.</p>
+
+  <h3>Extending to 2D: images</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-12.png"></div>
+  <p>A forward kernel is <strong>separable</strong> if it factors into two independent 1D kernels,
+  r(x,y,u,v) = r₁(x,u)·r₂(y,v) — one that acts along rows, one along columns — and <strong>symmetric</strong>
+  if those two factors are the same function. Every transform used in this unit (Fourier, Haar, DCT, DST) is
+  both. When that holds, the 2D transform pair collapses to:</p>
+  <div class="formula">T = A F A<sup>T</sup> &nbsp;&nbsp;&nbsp;&nbsp; F = A<sup>T</sup> T A</div>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    Read T = AFA<sup>T</sup> operationally, not just algebraically: multiplying F by A on the left transforms
+    every <em>column</em> of the image (a 1D transform run down each column), and multiplying by A<sup>T</sup>
+    on the right transforms every <em>row</em> of whatever came out of that first step. This is exactly how a
+    2D FFT is actually implemented in practice — as a batch of 1D FFTs along the rows, followed by a batch of
+    1D FFTs along the columns — rather than ever building or multiplying by an enormous single matrix for the
+    whole image at once. Section 6's abstract "T = AFA<sup>T</sup>" is the mathematical justification for that
+    row-then-column engineering trick.
+  </div>
+  <div class="caption-only"><img src="assets/deck6-13.png"><span class="cap-text">Deck 6, slide 13 — the same
+  formula generalized to non-square M×N images: T = A_M F A_N^T, F = A_M^T T A_N.</span></div>
+</section>
+
+<section class="concept" id="unitary-biorthogonal">
+  <h2 class="concept-title">6.3 · Complex and biorthogonal bases</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-14.png"></div>
+  <p>The Fourier transform's basis vectors are complex-valued (recall e<sup>−j2πux/M</sup> from Section 1.4),
+  so the real-valued machinery above needs one small patch: replace the transpose with a
+  <strong>conjugate transpose</strong> everywhere. A matrix built from complex orthonormal basis vectors is
+  called <strong>unitary</strong>, and its defining property A<sup>−1</sup> = A<sup>*T</sup> is the direct
+  complex-number analogue of A<sup>−1</sup> = A<sup>T</sup> for real orthogonal matrices.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-15.png"></div>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    A basis doesn't strictly need to be orthonormal to be invertible and useful. A <strong>biorthogonal</strong>
+    basis {s₀,s₁,…} works with a separate, paired-up "dual" basis {s̃₀,s̃₁,…} — the two sets aren't orthogonal to
+    themselves, only to <em>each other</em> (⟨s̃<sub>k</sub>, s<sub>l</sub>⟩ = δ<sub>kl</sub>). This relaxation
+    matters later: several practical wavelet families used in image compression are biorthogonal rather than
+    strictly orthonormal, because it turns out to be easier to design a good compression wavelet if you're not
+    forced to make the analysis and synthesis basis identical.
+  </div>
+  <p>Deck 6 poses (without fully solving) a small worked exercise here: given the 2-element basis
+  s₀ = (1/√2)[1,1]<sup>T</sup> and s₁ = (1/√2)[1,−1]<sup>T</sup>, find the 2×2 transform matrix A and its
+  inverse.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-16.png"></div>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    Worth finishing by hand, because it turns out to be one of the most important small matrices in the whole
+    unit. Stacking s₀ and s₁ as rows gives
+    A = (1/√2)[[1, 1], [1, −1]]. Check orthonormality directly: ⟨s₀,s₀⟩ = ½(1+1) = 1, ⟨s₁,s₁⟩ = ½(1+1) = 1, and
+    ⟨s₀,s₁⟩ = ½(1−1) = 0 — so A's rows are indeed orthonormal, and since A is also symmetric here,
+    A<sup>−1</sup> = A<sup>T</sup> = A. For any input f = [f₀, f₁]<sup>T</sup>:
+    <div class="formula" style="margin-top:8px">
+      t = Af = (1/√2) [ f₀ + f₁ , &nbsp; f₀ − f₁ ]<sup>T</sup>
+    </div>
+    In words: the first output coefficient is (a scaled) <em>sum</em> of the two inputs, and the second is
+    (a scaled) <em>difference</em>. Sum-and-difference on pairs of samples is precisely the operation Section
+    7.1 introduces as the <strong>Haar transform</strong> — so this "toy" 2×2 example isn't a random
+    linear-algebra drill, it's the smallest possible Haar transform, derived here from pure orthonormal-basis
+    reasoning before Section 7 ever gives it a name.
+  </div>
+</section>
+
+<section class="concept" id="basis-images">
+  <h2 class="concept-title">6.4 · Basis images</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-17.png"></div>
+  <p>Just as a 1D signal is a weighted sum of 1D basis vectors, a 2D image can be written as a weighted sum of
+  2D <strong>basis images</strong> S<sub>u,v</sub> — one full-size image-shaped pattern per (u,v) coefficient,
+  built from the outer product of two 1D basis vectors: S<sub>u,v</sub> = s<sub>u</sub>s<sub>v</sub><sup>T</sup>.
+  Each T(u,v) coefficient is then simply "how much of that one specific pattern is present" in the image being
+  transformed.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-18.png"></div>
+  <p>This 8-point Fourier transform matrix (built from powers of ω = e<sup>−j2π/8</sup>) generates the checkerboard
+  gallery of basis images beside it — the real and imaginary parts of every s<sub>u</sub>s<sub>v</sub><sup>T</sup>
+  outer product, arranged in a grid. Notice the pattern: the top-left tile (u=v=0) is flat gray — the DC
+  basis image, pure average brightness with no oscillation at all, exactly as Section 1.4 described F(0). Moving
+  right or down through the grid, the stripes get progressively finer — each tile is a literal picture of "how
+  fast this particular frequency oscillates," laid out as an image instead of described in words. You will see
+  this same gallery-of-basis-images idea again in concrete, hands-on form in Section 7 for the Haar and DCT
+  transforms.</p>
+
+  <h3>Why go to all this trouble? Three properties worth the abstraction</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck6-19.png"></div>
+  <ul>
+    <li><strong>Energy conservation</strong> — an orthonormal/unitary transform is just a rotation of
+    coordinates, so it cannot create or destroy total signal energy; ‖f‖² = ‖t‖² always.</li>
+    <li><strong>Energy compaction</strong> — a well-chosen basis packs most of that (conserved) energy into a
+    small number of coefficients, leaving the rest near zero. This is exactly the phenomenon Section 1.5
+    demonstrated concretely (keeping 1% of DFT coefficients still kept 98.8% of sample.png's energy) — Section
+    6 is naming and generalizing what that experiment already showed.</li>
+    <li><strong>Decorrelation</strong> — pixel values in a natural image are highly correlated with their
+    neighbors (a pixel and the one next to it are usually similar). A good transform's coefficients are much
+    less correlated with each other than the original pixels were, even though no information was lost. This
+    matters enormously for compression: Section 9's Huffman coding gets far more benefit out of decorrelated,
+    energy-compacted transform coefficients than it ever could out of raw, highly-correlated pixel values —
+    which is the entire reason a transform step comes <em>before</em> the entropy-coding step in every
+    compression pipeline in Sections 8–11.</li>
+  </ul>
+</section>

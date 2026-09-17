@@ -1,0 +1,201 @@
+<div class="hero">
+  <span class="kicker">Lecture 11 · Deck 11 — final section</span>
+  <h1>Block Transform Coding &amp; JPEG</h1>
+  <p class="dek">Every idea from this entire unit converges here. Frequency-domain thinking (Sections 1–5),
+  the DCT's superior energy compaction (Section 7), entropy coding (Section 9), and run-length coding (Section
+  10) all combine into one concrete, ubiquitous standard: JPEG. This section is where the whole unit pays off.</p>
+</div>
+
+<div class="caption-only"><img src="assets/deck11-02.png"><span class="cap-text">Deck 11, slide 2 — section
+divider: "Lecture 11: Block Transform Techniques."</span></div>
+
+<section class="concept" id="block-transform-coding">
+  <h2 class="concept-title">11.1 · Block transform coding: the general recipe</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-03.png"></div>
+  <p>Rather than transforming an entire image at once (as Sections 1–5's whole-image DFT filtering did), block
+  transform coding divides the image into small, non-overlapping n×n blocks and transforms each one
+  independently: forward transform → quantizer → symbol encoder, with the decoder running the mirror-image
+  pipeline in reverse (symbol decoder → inverse transform → reassemble the blocks).</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-04.png"></div>
+  <p>The goal of the transform step is exactly Section 6.4's energy-compaction and decorrelation properties,
+  now stated as the explicit design objective: decorrelate each block's pixels, and pack as much information
+  as possible into the fewest coefficients — so that quantization (discarding or coarsening the
+  least-informative coefficients) does the least possible visible damage.</p>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    Working block-by-block instead of on the whole image at once introduces a defect that whole-image
+    transform coding never had: a <strong>blocking artifact</strong> — visible discontinuities right at block
+    boundaries, because each block is quantized and reconstructed with zero knowledge of its neighbors. This is
+    the direct cost of the locality traded for in Section 7.4's DWT discussion, but here applied to a
+    fixed-size grid rather than a multiresolution pyramid — and it's precisely why the choice of block size
+    (Section 11.2) and transform (Section 11.1's "adaptive vs. non-adaptive" distinction) matters so much in
+    practice.
+  </div>
+
+  <h3>Truncating the transform with a masking function</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-05.png"></div>
+  <div class="formula">
+    Ĝ = Σ<sub>u=0</sub><sup>n−1</sup> Σ<sub>v=0</sub><sup>n−1</sup> χ(u,v)·T(u,v)·S<sub>uv</sub>
+    &nbsp;&nbsp;&nbsp; χ(u,v) = 0 if T(u,v) meets a truncation rule, else 1
+  </div>
+  <p>This is Section 6.4's basis-image sum (Ĝ built from a weighted stack of basis images S<sub>uv</sub>),
+  with one new ingredient: the masking function χ(u,v) is a per-coefficient on/off switch that zeroes out
+  coefficients meeting some "not worth keeping" criterion — the formal machinery behind every energy-compaction
+  demo run so far in this unit (Section 1.5's DFT truncation, Section 7.2's DCT-coefficient truncation).</p>
+</section>
+
+<section class="concept" id="subimage-size">
+  <h2 class="concept-title">11.2 · Choosing the block size</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-06.png"></div>
+  <p>Block size n is a genuine trade-off, not a free parameter: larger blocks generally improve both
+  compression <em>and</em> reconstruction error, but cost more computation per block. The reconstruction-error
+  chart makes the DCT's advantage (first demonstrated qualitatively in Section 7.2) numerically concrete: at
+  every subimage size, the DCT curve sits well below both the DFT and the Walsh-Hadamard Transform (WHT, a
+  matrix transform built from ±1 entries rather than sinusoids) — confirming with real RMSE numbers that the
+  DCT compacts more energy per coefficient than its Fourier-family competitors, at every block size tested.</p>
+  <p>n is conventionally restricted to a power of 2, purely for computational convenience — it lets the same
+  fast, recursive transform algorithms (the FFT-style structure discussed in Section 1.4) apply directly to
+  each block. <strong>8×8 and 16×16</strong> are called out as the most popular choices in practice — 8×8 is
+  exactly the block size JPEG itself uses (Section 11.4).</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-07.png"></div>
+  <p>The visual comparison confirms the same story: keeping a fixed 25% of DCT coefficients, larger subimages
+  (2×2 → 4×4 → 8×8) recover progressively sharper, more faithful detail from the same coefficient budget.</p>
+</section>
+
+<section class="concept" id="bit-allocation">
+  <h2 class="concept-title">11.3 · Bit allocation: deciding which coefficients survive</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-08.png"></div>
+  <p><strong>Bit allocation</strong> is the umbrella term for the full truncate/quantize/code decision made
+  per sub-image. Two masking strategies for choosing which coefficients to keep:</p>
+  <ul>
+    <li><strong>Zonal coding</strong> — keep coefficients based on maximum <em>variance</em>, using one fixed
+    mask (zone) applied identically to every sub-image in the picture, regardless of that particular block's
+    actual content.</li>
+    <li><strong>Threshold coding</strong> — keep coefficients based on maximum <em>magnitude</em>,
+    <em>within that specific block</em> — inherently adaptive, since which coefficients survive can differ from
+    block to block.</li>
+  </ul>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-09.png"></div>
+  <p>A direct, controlled comparison — both methods discarding the identical 87.5% of DCT coefficients per 8×8
+  block — shows threshold coding winning decisively: RMSE 4.5 versus zonal coding's RMSE 6.5. The
+  difference-image panels make the reason visible: threshold coding's errors cluster tightly around genuine
+  high-detail regions (hair, hat brim), while zonal coding's fixed, content-blind mask throws away
+  coefficients that happened to matter a lot in some blocks and very little in others.</p>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    This result is a direct, concrete instance of Section 6's "adaptive vs. non-adaptive" distinction from
+    Section 11.1: zonal coding is the non-adaptive case (one rule for every block, everywhere), threshold
+    coding is the adaptive case (the rule reacts to each block's own actual content). Adaptive methods
+    essentially always win on reconstruction fidelity for the same coefficient budget — the cost is needing to
+    additionally signal, per block, <em>which</em> coefficients survived (since it now varies block to block),
+    which is exactly why the deck notes threshold coding needs run-length coding (Section 10.1) as an
+    overhead-reduction partner: RLE cheaply encodes "which positions were kept" as a sequence of skip-lengths
+    rather than one flag bit per coefficient.
+  </div>
+  <div class="caption-only"><img src="assets/deck11-10.png"><span class="cap-text">Deck 11, slide 10 — three ways
+  to threshold: a single global threshold, a per-subimage threshold (N-largest coding), or a threshold varied by
+  each coefficient's location.</span></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-11.png"></div>
+  <p>Thresholding and quantization combine into a single step: a normalization matrix Z(u,v) divides each raw
+  DCT coefficient before rounding, so <em>which</em> coefficients survive (large Z → aggressively shrunk toward
+  zero) and <em>how much precision</em> a surviving coefficient keeps are controlled by one matrix. This
+  Z matrix is exactly what Section 11.4 calls the JPEG "quantization table."</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-12.png"></div>
+</section>
+
+<section class="concept" id="jpeg">
+  <h2 class="concept-title">11.4 · JPEG: block transform coding, as an actual standard</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-13.png"></div>
+  <div class="caption-only"><img src="assets/deck11-14.png"><span class="cap-text">Deck 11, slide 14 — JPEG
+  defines three coding systems: a lossy DCT-based baseline, an extended system for higher precision/progressive
+  reconstruction, and a lossless independent system.</span></div>
+  <div class="caption-only"><img src="assets/deck11-15.png"><span class="cap-text">Deck 11, slide 15 — the 7-step
+  recipe end to end: YUV → 8×8 blocks → DCT → quantize → zigzag → RLE → Huffman.</span></div>
+  <div class="caption-only"><img src="assets/deck11-16.png"><span class="cap-text">Deck 11, slide 16 — the same
+  pipeline shown running on a real image, from raw input through DCT/quantization to entropy-coded output.</span></div>
+  <p>JPEG (Joint Photographic Experts Group) fixes every free parameter from Sections 11.1–11.3 into one
+  concrete, universally-adopted recipe: 8×8 blocks, the DCT (chosen specifically for its blocking-artifact
+  minimization and energy compaction — Section 7.2's derivation directly justifies this choice), and threshold
+  coding via quantization. The encoder and decoder pipelines are exact mirror images of each other, exactly as
+  Section 11.1's general block-transform-coding diagram predicted.</p>
+
+  <h3>Step 1 (optional) — color transform and chroma downsampling</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-17.png"></div>
+  <p>RGB is converted to a luminance/chrominance space (Y for brightness, U and V for color), because the human
+  eye is far more sensitive to changes in <em>brightness</em> than in <em>color</em>. This lets JPEG throw away
+  chroma resolution the eye won't miss: <strong>4:1:1</strong> subsampling keeps all 4 Y (luminance) samples in
+  a 2×2 pixel block but averages down to just 1 U and 1 V sample for that whole block — already a 2:1
+  reduction in total data before the DCT step even begins, exploiting the psychovisual redundancy named back in
+  Section 8.2.</p>
+
+  <h3>Steps 2–3 — 8×8 blocks, DCT</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-18.png"></div>
+  <p>The image (per color channel) is tiled into 8×8 blocks, and each block's 64 pixel values become 64 DCT
+  coefficients — exactly the single-block DCT demonstrated with real numbers in Section 7.2. As established
+  there, one DC coefficient (top-left, the block's average) plus a small handful of low-frequency AC
+  coefficients carry almost all of the block's energy.</p>
+
+  <h3>Step 4 — quantization: where the actual lossy compression happens</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-19.png"></div>
+  <p>The DCT itself is lossless (up to floating-point rounding) — reversing it recovers the exact original
+  block. All of JPEG's controllable, dial-a-quality lossiness happens in this one step: every coefficient is
+  divided by an integer from a quantization table and rounded. Because the human eye is far less sensitive to
+  high spatial frequencies (Section 4's whole premise about what high-pass content even represents), the
+  quantization table divides high-frequency coefficients by larger numbers than low-frequency ones — coarser
+  quantization exactly where it's least likely to be noticed. This single table, tunable to trade file size
+  against visual quality, <em>is</em> the "JPEG quality" slider — and it must be stored alongside the
+  compressed data so the decoder knows how to reverse it.</p>
+
+  <h3>Steps 5–7 — zigzag order, RLE, Huffman</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-20.png"></div>
+  <p>Reading the quantized 8×8 coefficient grid in a diagonal zigzag (rather than row-by-row) puts low
+  frequencies first and high frequencies last — and because quantization has already rounded most
+  high-frequency coefficients down to exactly zero, the zigzag ordering turns them into one long trailing run
+  of zeros. That's a deliberate setup for Section 10.1's run-length coding to work as well as possible: RLE
+  shines precisely on long, uniform runs, and the zigzag reordering manufactures exactly that. The run-length
+  symbols are then Huffman-coded (Section 9), using the exact same "short codes for frequent symbols" logic —
+  here, "a zero-run of a common length" is simply a very frequent symbol.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Actual JPEG compression at decreasing quality</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/jpeg_q90.jpg"><div class="lbl">quality 90 — 27.0 KB<br>16.7:1 vs. raw</div></div>
+      <div class="sim-img-box"><img src="assets/sims/jpeg_q50.jpg"><div class="lbl">quality 50 — 9.8 KB<br>46.1:1 vs. raw</div></div>
+      <div class="sim-img-box"><img src="assets/sims/jpeg_q20.jpg"><div class="lbl">quality 20 — 5.9 KB<br>76.1:1 vs. raw</div></div>
+      <div class="sim-img-box"><img src="assets/sims/jpeg_q5.jpg"><div class="lbl">quality 5 — 3.7 KB<br>119.5:1 vs. raw</div></div>
+    </div>
+    <p style="margin-top:10px">These are the exact same compression-ratio numbers first reported in Section
+    8.3, now connected to their visible cause: at quality 5, the aggressive quantization table has zeroed out
+    nearly every AC coefficient in most 8×8 blocks, so entire blocks collapse toward flat, DC-only tiles — the
+    telltale blocky mosaic pattern of extreme JPEG compression, a direct visual instance of the blocking
+    artifact flagged in Section 11.1's counterintuitive callout.</p>
+  </div>
+
+  <h3>The published, real-world example</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-21.png"></div>
+  <p>The textbook's own comparison shows a milder, well-tuned JPEG compression (top row) versus a much more
+  aggressive one (bottom row): the top row's scaled-difference image (b) is nearly uniform gray noise — the
+  error is small and evenly spread, essentially invisible in the reconstructed image. The bottom row's
+  difference image clearly outlines the hat brim, hair, and face — exactly where the image had the most
+  high-frequency detail for quantization to damage — matching Section 11.3's finding that errors concentrate
+  where detail (and therefore surviving AC coefficients) is richest.</p>
+</section>
+
+<section class="concept" id="jpeg2000">
+  <h2 class="concept-title">11.5 · JPEG-2000: the wavelet-based successor</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-22.png"></div>
+  <p>JPEG-2000 swaps out the DCT for the DWT (Section 7.4) and bit-plane coding (Section 10.4) for its core
+  transform-and-code steps, gaining several practical advantages that follow directly from properties already
+  established earlier in this unit: no blocking artifact (the wavelet transform isn't confined to a fixed 8×8
+  grid the way JPEG's DCT is — Section 11.1's core defect simply doesn't arise the same way); much better
+  low-bitrate quality (the DWT's multiresolution structure degrades by getting progressively blurrier, not
+  blockier, as Section 7.4's LL-only reconstruction demonstrated); and new features unavailable to block-based
+  JPEG, like region-of-interest coding and true random access into the compressed bitstream.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck11-23.png"></div>
+  <p>At an extremely aggressive 0.125 bits per pixel, the difference is stark: JPEG's DCT blocks have
+  completely collapsed into a visible 8×8 grid of flat tiles, while JPEG-2000's wavelet-coded result remains
+  soft and blurry but structurally coherent — no grid artifact anywhere. This single comparison image is the
+  clearest possible payoff of Section 7.4's honest DWT-vs-DCT trade-off table: DWT's computational cost buys
+  real, visible robustness at the low-bitrate extreme, exactly where JPEG's blocking artifact is at its worst.</p>
+</section>

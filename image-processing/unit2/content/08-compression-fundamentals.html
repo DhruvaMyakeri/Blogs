@@ -1,0 +1,226 @@
+<div class="hero">
+  <span class="kicker">Lecture 8 · Deck 8</span>
+  <h1>Image Compression Fundamentals</h1>
+  <p class="dek">The unit now pivots from "how do we transform an image" to "how do we make an image smaller."
+  This section lays the conceptual groundwork — what redundancy actually means, how to measure a compression
+  scheme's success, and the standard encoder/decoder pipeline every technique in Sections 9–11 will slot into.</p>
+</div>
+
+<div class="caption-only"><img src="assets/deck8-02.png"><span class="cap-text">Deck 8, slide 2 — section divider:
+"Lecture 8: Image Compression."</span></div>
+
+<section class="concept" id="motivation">
+  <h2 class="concept-title">8.1 · Why compression matters, in real numbers</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-04.png"></div>
+  <p>The slide's own back-of-envelope calculation is worth keeping, because it makes the stakes concrete rather
+  than abstract: a 2-hour movie at typical broadcast bitrate works out to roughly 224 GB uncompressed. Fitting
+  that onto a single 8.5 GB dual-layer DVD requires compressing every single frame by a factor of about
+  <strong>26.3×</strong> — and HD content, at a much higher native resolution, needs even more. Compression
+  isn't an optional efficiency tweak here; without it, the storage and bandwidth most image and video
+  applications assume simply would not exist.</p>
+
+  <h3>Data vs. information — a distinction worth being precise about</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-03.png"></div>
+  <p>Data is the physical representation (bits, symbols); information is what those bits actually convey. The
+  same information can always be represented by different amounts of data — and compression is specifically
+  the search for a smaller amount of data that still conveys (all or most of) the same information. Whenever a
+  representation uses more data than the information it carries strictly requires, that excess is called
+  redundancy — and it's the redundancy, not the information, that compression removes.</p>
+</section>
+
+<section class="concept" id="redundancy-types">
+  <h2 class="concept-title">8.2 · Three kinds of redundancy in image data</h2>
+  <div class="caption-only"><img src="assets/deck8-09.png"><span class="cap-text">Deck 8, slide 9 — "what can we
+  compress?": coding redundancy exists whenever gray-level codes ignore event probabilities; goals: remove
+  redundancy, reduce irrelevance.</span></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-07.png"></div>
+  <p>Every compression technique in this unit works by targeting one (or more) of exactly three redundancy
+  types:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-08.png"></div>
+  <ol>
+    <li><strong>Coding redundancy</strong> — using more bits per gray level than the actual statistics of the
+    image require. A fixed 8-bit code spends the same 8 bits on a gray level that occurs constantly as on one
+    that occurs almost never — wasteful whenever gray-level probabilities are uneven, which they almost always
+    are (illustrated by the star-shaped test pattern, whose flat, sharply-bounded regions can be losslessly
+    described far more economically than a naive per-pixel code would).</li>
+    <li><strong>Spatial and temporal redundancy</strong> — neighboring pixels tend to be similar (spatial), and
+    corresponding pixels in nearby video frames tend to be similar (temporal). The striped test pattern makes
+    this vivid: every row is identical to the row above it, so storing each row independently repeats
+    information that a smarter scheme would only need to store once.</li>
+    <li><strong>Irrelevant information</strong> — detail present in the data but essentially invisible or
+    unimportant to a human viewer (the third, nearly-flat gray panel). This is the redundancy category that
+    lossy compression is specifically willing to sacrifice, on the bet that a viewer won't notice or won't
+    care.</li>
+  </ol>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    Notice how each redundancy type maps onto a section of this unit: coding redundancy is exactly what
+    Section 9's Huffman coding targets (short codes for common symbols, long codes for rare ones — precisely
+    "codes not selected to take advantage of the probabilities of the events," which the deck flags directly
+    on the next slide); spatial redundancy is what Sections 6–7's transforms and Section 10's run-length coding
+    exploit (a smooth region transforms into a few large coefficients, or a repeated run compresses into one
+    count); and irrelevant/psychovisual information is what a lossy quantizer (Section 8.4 below) throws away
+    on purpose. Nothing in Sections 9–11 is really a new idea — it's this same three-way taxonomy, applied with
+    different tools.
+  </div>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Coding redundancy, made concrete: the actual entropy of this image</h4>
+    <p>The slide states that coding redundancy exists whenever gray levels are not equally probable. Measuring
+    this directly on sample.png's own 256-level grayscale histogram gives a first-order entropy of
+    <strong>6.876 bits/pixel</strong> — meaningfully below the naive 8 bits/pixel a fixed-length code spends on
+    every pixel. That gap (8 − 6.876 = 1.124 bits/pixel) is coding redundancy sitting in the raw file, before
+    any transform or prediction step is even applied — and it upper-bounds how much a pure entropy coder (like
+    Section 9's Huffman code) can save on this image without changing a single pixel value. (See Section 9 for
+    exactly how a real code gets built to close most of that gap.)</p>
+  </div>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Irrelevant information: how much gray-level precision does the eye actually need?</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">256 gray levels (8 bpp)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/quantized_16levels.png"><div class="lbl">16 levels (4 bpp)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/quantized_8levels.png"><div class="lbl">8 levels (3 bpp)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/quantized_4levels.png"><div class="lbl">4 levels (2 bpp)</div></div>
+    </div>
+    <p style="margin-top:10px">Coarsely re-quantizing the gray levels is a deliberately crude way to discard
+    "irrelevant" precision: at 16 levels the image is still almost indistinguishable from the original; by 4
+    levels, visible banding ("false contouring") appears in the smooth background — the precision being thrown
+    away has finally crossed from irrelevant into visible. This is a blunt, purely-illustrative version of the
+    much smarter psychovisual quantization real lossy codecs use (Section 11's JPEG quantizes DCT coefficients
+    rather than raw pixels, which hides the same kind of precision loss far more effectively).</p>
+  </div>
+</section>
+
+<section class="concept" id="measuring-compression">
+  <h2 class="concept-title">8.3 · Measuring how well a scheme compresses</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-10.png"></div>
+  <div class="formula">C<sub>R</sub> = n₁ / n₂</div>
+  <p>The <strong>compression ratio</strong> is simply the size before compression divided by the size after —
+  a C<sub>R</sub> of 10 means the original data used 10 units for every 1 unit the compressed version needs.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-06.png"></div>
+  <div class="formula">R<sub>D</sub> = 1 − 1/C<sub>R</sub></div>
+  <p><strong>Relative data redundancy</strong> reframes the same number as a fraction: at C<sub>R</sub> = 10,
+  R<sub>D</sub> = 0.9, meaning 90% of the original representation's bits were redundant — genuinely unnecessary
+  to preserve the same information (for lossless schemes) or the same acceptable fidelity (for lossy ones).</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Real compression ratios, computed on this image</h4>
+    <p>Actually running sample.png (344×438, 3-channel, 452,016 raw bytes uncompressed) through a real lossy
+    codec at decreasing quality settings:</p>
+    <table>
+      <tr><th>JPEG quality</th><th>Compressed size</th><th>Compression ratio C<sub>R</sub></th><th>Relative
+      redundancy R<sub>D</sub></th></tr>
+      <tr><td>90</td><td>27.0 KB</td><td>16.7×</td><td>0.940</td></tr>
+      <tr><td>50</td><td>9.8 KB</td><td>46.1×</td><td>0.978</td></tr>
+      <tr><td>20</td><td>5.9 KB</td><td>76.1×</td><td>0.987</td></tr>
+      <tr><td>5</td><td>3.7 KB</td><td>119.5×</td><td>0.992</td></tr>
+    </table>
+    <p style="margin-top:10px">Even a visually strong quality-90 encode is already discarding 94% relative
+    redundancy — a direct, numeric answer to "how much of a raw image file is genuinely necessary?" Section 11
+    walks through exactly what JPEG does internally to achieve numbers like these.</p>
+  </div>
+
+  <h3>Fidelity: how do you judge what was lost?</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-16.png"></div>
+  <p>Compression ratio alone says nothing about quality — a scheme could hit a huge ratio simply by discarding
+  the image entirely. <strong>Fidelity criteria</strong> quantify what was lost, in two flavors:</p>
+  <ul>
+    <li><strong>Objective</strong> — a mathematical function of the input and output, needing no human judgment
+    at all (e.g. RMS error between original and reconstructed images).</li>
+    <li><strong>Subjective</strong> — averaged human ratings, since a numerically small error can still be
+    visually jarring (or vice versa) depending on where in the image it falls.</li>
+  </ul>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-17.png"></div>
+  <p>The Television Allocations Study Organization's 6-point rating scale (Excellent → Unusable) is a concrete
+  example of subjective fidelity in practice — a reminder that "good enough" compression is ultimately defined
+  by how real viewers judge the result, not only by an error formula.</p>
+</section>
+
+<section class="concept" id="lossless-vs-lossy">
+  <h2 class="concept-title">8.4 · Lossless vs. lossy compression</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-11.png"></div>
+  <div class="caption-only"><img src="assets/deck8-19.png"><span class="cap-text">Deck 8, slide 19 — the same
+  Entropy/Source-Coding taxonomy tree, alongside the lossless-vs-lossy split spelled out in prose.</span></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-20.png"></div>
+  <table>
+    <tr><th></th><th>Lossless</th><th>Lossy</th></tr>
+    <tr><td>Reversibility</td><td>Perfectly reversible, no information lost</td><td>Non-reversible, information
+    lost</td></tr>
+    <tr><td>Compression ratio</td><td>Usually low</td><td>Usually very high</td></tr>
+    <tr><td>Best suited for</td><td>Data a human must handle exactly as-is (text, executable files);
+    independent of the psychovisual system</td><td>Data whose fine detail humans can't fully perceive anyway;
+    compression exploits the psychovisual system directly</td></tr>
+    <tr><td>Typical domain</td><td>Medical images, program files — anywhere reliability is critical</td>
+    <td>Photographs, video, audio — anywhere some quality loss is an acceptable trade for size</td></tr>
+  </table>
+  <p>This is the exact trade-off named back in Section 8.2's "irrelevant information" redundancy type: lossy
+  compression is precisely the decision to also discard that third redundancy category, on top of the coding
+  and spatial redundancy a lossless scheme already removes. Sections 9–10 (Huffman, RLE, bit-plane, CCITT) are
+  lossless; Section 11 (block transform coding, JPEG) is lossy.</p>
+
+  <h3>The compression scheme family tree</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-12.png"></div>
+  <div class="caption-only"><img src="assets/deck8-13.png"><span class="cap-text">Deck 8, slide 13 — Li &amp;
+  Drew's Coding Techniques taxonomy: Entropy Encoding (RLE, Huffman) vs. Source Coding (transform, differential,
+  vector-quantization).</span></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-14.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-15.png"></div>
+  <div class="caption-only"><img src="assets/deck8-18.png"><span class="cap-text">Deck 8, slide 18 — real-world
+  image formats/containers/standards mapped onto binary vs. continuous-tone still images and video codecs.</span></div>
+  <p>These three taxonomy diagrams are worth treating as a map of what's coming: Run-length and Huffman
+  (pixel/lossless-entropy branch) are Sections 9–10; DPCM/ADPCM and DCT/DWT/Haar (prediction and transform
+  branches) connect straight back to Section 7; and JPEG (the "hybrid" combining transform coding with entropy
+  coding) is Section 11's destination.</p>
+</section>
+
+<section class="concept" id="compression-pipeline">
+  <h2 class="concept-title">8.5 · The general image compression pipeline</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-05.png"></div>
+  <p>Every compression system in this unit — however different its internals — is an instance of the same
+  compress/store-or-transmit/decompress loop: f(x,y) goes into a compressor, the compressed bits are stored or
+  transmitted, and a decompressor later reconstructs an approximation f̂(x,y) of the original (identical to
+  f(x,y) for a lossless scheme, an approximation for a lossy one).</p>
+
+  <h3>Inside the encoder: three independent stages</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-21.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-25.png"></div>
+  <div class="caption-only"><img src="assets/deck8-26.png"><span class="cap-text">Deck 8, slide 26 — the symbol
+  encoder in detail: reversible, shortest codewords to the most frequent quantizer outputs; its completion means
+  all three redundancy types have been addressed.</span></div>
+  <ol>
+    <li><strong>Mapper</strong> — transforms the image into a format that exposes and reduces spatial/temporal
+    redundancy (e.g. a DCT/DWT transform, or run-length coding). Reversible; may or may not shrink the data by
+    itself.</li>
+    <li><strong>Quantizer</strong> — discards irrelevant (psychovisual) information to reduce the data further.
+    <strong>Irreversible</strong> — this is the one stage that must be skipped entirely for error-free
+    (lossless) compression.</li>
+    <li><strong>Symbol encoder</strong> — assigns a fixed- or variable-length code to the quantizer's output,
+    giving the shortest codes to the most frequent values (directly attacking coding redundancy). Reversible.
+    This is exactly where Section 9's Huffman coding operates.</li>
+  </ol>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-23.png"></div>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    The decoder's block diagram is deliberately missing an "inverse quantizer." That's not an oversight — the
+    slide states it directly: quantization is irreversible, so there is nothing for a decoder to invert. A
+    lossy decoder can only reverse the mapper and the symbol coder; whatever precision the quantizer discarded
+    is genuinely gone, permanently, the moment it happens. This is the single structural fact that separates
+    "lossy" from "lossless" at the architecture level, not just at the philosophical level of "some quality was
+    lost."
+  </div>
+
+  <h3>Source coding vs. channel coding — a distinction worth not confusing</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-22.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck8-24.png"></div>
+  <p>Everything above (mapper, quantizer, symbol coder) is <strong>source coding</strong> — squeezing out
+  redundancy that was already in the data. A full transmission system typically adds a second, entirely
+  separate stage afterward: <strong>channel coding</strong>, which deliberately adds back controlled,
+  structured redundancy (e.g. a Hamming code) to protect the now-compressed data against transmission errors.
+  It's worth being precise about the direction of each step: source coding removes redundancy to shrink data;
+  channel coding adds a different, engineered kind of redundancy back in to make that shrunk data robust to
+  noise. The two are not in tension — they operate on the data in sequence, for entirely different reasons.</p>
+</section>

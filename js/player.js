@@ -211,7 +211,7 @@
         .replace(/\/index\.html$/i, "/")
         .replace(/\.html$/i, "");
       return (
-        /\/image-processing\/unit\d+\/?$/i.test(path) ||
+        /\/image-processing\/unit\d+/i.test(path) ||
         /\/IOT\/unit-\d+/i.test(path)
       );
     } catch {

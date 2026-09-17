@@ -1,0 +1,227 @@
+<div class="hero">
+  <span class="kicker">Lecture 5 · Deck 5 (and Deck 4's closing slides)</span>
+  <h1>Unsharp Masking, High-Boost &amp; Homomorphic Filtering</h1>
+  <p class="dek">Section 4 built pure high-pass filters, which throw away the DC term and every low frequency
+  near it — useful for isolating edges, but the result is dim, featureless line art (Section 4.2's counterintuitive
+  point). This section fixes that by <em>adding</em> high-pass content back onto the original instead of
+  replacing the original with it, then pushes the same idea to its logical extreme with Homomorphic filtering,
+  a technique for fixing bad lighting.</p>
+</div>
+
+<section class="concept" id="unsharp-masking">
+  <h2 class="concept-title">5.1 · Unsharp masking, high-boost, and high-frequency emphasis</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-02.png"></div>
+  <p>Unsharp masking is an old darkroom photography technique, and its frequency-domain version follows the
+  same three steps as the original chemical process: blur a copy, subtract it from the original to isolate what
+  the blur lost, then add that difference back on top.</p>
+  <div class="formula">
+    g<sub>mask</sub>(x,y) = f(x,y) − f<sub>LP</sub>(x,y) &nbsp;&nbsp; where f<sub>LP</sub>(x,y) = 𝔉<sup>−1</sup>[H<sub>LP</sub>(u,v)F(u,v)]<br><br>
+    g(x,y) = f(x,y) + k · g<sub>mask</sub>(x,y)
+  </div>
+  <p>f<sub>LP</sub> is just a low-pass-filtered (blurred) copy of the image, built with any of Section 3's
+  filters. g<sub>mask</sub> — the "mask" — is what that blur removed: exactly the image's own high-frequency
+  content. Adding a scaled copy of that mask back onto the original amplifies the very detail the blur had
+  smoothed away.</p>
+  <ul>
+    <li><strong>k = 1</strong> — this is <strong>unsharp masking</strong> proper.</li>
+    <li><strong>k &gt; 1</strong> — this is <strong>high-boost filtering</strong>: the same idea, with the
+    high-frequency contribution deliberately over-weighted for a stronger effect.</li>
+  </ul>
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Building the mask, then adding it back at increasing strength</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">f(x,y) — original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/blurred_for_unsharp.png"><div class="lbl">f_LP(x,y) —
+      Gaussian-blurred</div></div>
+      <div class="sim-img-box"><img src="assets/sims/unsharp_mask.png"><div class="lbl">g_mask = f − f_LP</div></div>
+    </div>
+    <div class="sim-row" style="margin-top:10px">
+      <div class="sim-img-box"><img src="assets/sims/unsharp_k1.png"><div class="lbl">k = 1<br>(unsharp masking)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/unsharp_k2.png"><div class="lbl">k = 2</div></div>
+      <div class="sim-img-box"><img src="assets/sims/unsharp_k4.png"><div class="lbl">k = 4<br>(strong high-boost)</div></div>
+    </div>
+    <p style="margin-top:10px">The mask on its own looks like a faint, contrast-inverted line drawing — almost
+    nothing but edges, at roughly mid-gray everywhere else, which is exactly "the image minus its own smooth
+    part." Adding it back at k = 1 gives a crisper, more defined version of the original with no loss of the
+    original's overall tone. Pushing k up to 4 makes every edge visibly overshoot — a bright halo along the
+    silhouette and fabric folds — which is the well-known visible side-effect of high-boost filtering pushed
+    too far.</p>
+  </div>
+
+  <h3>Rewriting unsharp masking as a pure frequency-domain filter</h3>
+  <p>Because f<sub>LP</sub> is itself built from H<sub>LP</sub>, the whole operation can be collapsed into one
+  filter applied once, with no separate blurring step:</p>
+  <div class="formula">
+    g(x,y) = 𝔉<sup>−1</sup>{ (1 + k[1 − H<sub>LP</sub>(u,v)]) F(u,v) }
+    &nbsp;&nbsp;&equiv;&nbsp;&nbsp; g(x,y) = 𝔉<sup>−1</sup>{ [1 + k·H<sub>HP</sub>(u,v)] F(u,v) }
+  </div>
+  <div class="caption-only"><img src="assets/deck5-03.png"><span class="cap-text">Deck 5, slide 3 — the same
+  derivation in the textbook's own equation numbering (4-128 to 4-132).</span></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-04.png"></div>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    The rewrite is worth pausing on because it directly answers Section 4's complaint about pure high-pass
+    filtering. H<sub>HP</sub> alone zeroes the DC term, producing a dim, mean-zero result. Here H<sub>HP</sub>
+    is multiplied by k and then a flat <strong>1</strong> is added back on top of the whole transfer function.
+    That added 1 passes the original image through completely unchanged at every frequency (since multiplying
+    F(u,v) by 1 changes nothing), while the k·H<sub>HP</sub> term rides on top of it, boosting high frequencies
+    only. The DC term — and every low frequency — survives because of that added 1; only the high end gets any
+    extra emphasis. This is the entire trick, and it is why the "1 +" is present in every formula on this page.
+  </div>
+
+  <p>Generalizing the same idea by decoupling the two constants gives <strong>high-frequency-emphasis
+  filtering</strong>:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-05.png"></div>
+  <div class="formula">g(x,y) = 𝔉<sup>−1</sup>{ [k₁ + k₂·H<sub>HP</sub>(u,v)] F(u,v) } &nbsp;&nbsp; k₁ ≥ 0, k₂ ≥ 0</div>
+  <p>k₁ (in place of the fixed "1") controls how much of the original DC/low-frequency content survives, and k₂
+  independently controls how much high-frequency boost is layered on top. High-boost filtering is the special
+  case k₁ = 1, k₂ = k.</p>
+
+  <h3>Worked example: a chest X-ray with washed-out contrast</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-07.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-08.png"></div>
+  <p>This example (from the textbook) is worth walking through because it shows the technique earning its
+  keep on a real, non-toy image. The X-ray's intensities are crammed into a narrow, dark range — Fig. (a). A
+  <strong>Gaussian</strong> high-pass filter is used specifically because, per Section 4.3, its spatial kernel
+  has no ringing, and ringing artifacts are unacceptable in a medical image. D₀ = 70 (about 10% of the image's
+  long dimension) was chosen empirically to sharpen boundaries without over-amplifying noise.</p>
+  <ul>
+    <li><strong>(b) pure GHPF result</strong> — featureless and dark (DC term gone), but the rib boundaries are
+    now crisply delineated — exactly Section 4.2's "line-art" signature.</li>
+    <li><strong>(c) high-frequency-emphasis, k₁ = 0.5, k₂ = 0.75</strong> — tonality is restored (the k₁ term
+    lets the low frequencies back in) with the edge emphasis from (b) layered on top.</li>
+    <li><strong>(d) histogram equalization applied to (c)</strong> — a spatial-domain technique (from Unit 1)
+    stacked on top of the frequency-domain result. The slide's own conclusion is a useful methodological
+    takeaway: combining a frequency-domain and a spatial-domain technique gave a better result than either
+    used alone.</li>
+  </ul>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>High-frequency-emphasis filtering</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/hfe_result.png"><div class="lbl">HFE, k1=0.5, k2=2.0,
+      Butterworth HPF D0=30</div></div>
+    </div>
+    <p style="margin-top:10px">Compare this to the pure Butterworth high-pass result in Section 4.3 at the same
+    D0 = 30: that one lost all tonal information; this one keeps the original's full tonal range while every
+    edge and fold reads noticeably crisper.</p>
+  </div>
+</section>
+
+<section class="concept" id="laplacian-freq">
+  <h2 class="concept-title">5.2 · The Laplacian in the frequency domain</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-06.png"></div>
+  <p>Unit 1's spatial-domain Laplacian sharpening used the familiar 3×3 kernel [0,1,0; 1,−4,1; 0,1,0] — a
+  second-derivative edge detector. That same operator has a clean frequency-domain description: it turns out to
+  be a parabolic bowl, H(u,v) = −4π²(u² + v²) (a pure function of distance from the center, just like every
+  other filter in this unit, just shaped as a downward-curving bowl instead of a cutoff or a bell).</p>
+  <p>Its inverse DFT reproduces the familiar spatial kernel's structure directly — a bright plus-shaped cross of
+  four positive taps surrounding a strongly negative center, matching the classic [0,1,0;1,−4,1;0,1,0] pattern
+  pixel for pixel once you account for scaling. This is a nice closing of the loop back to Unit 1: the same
+  sharpening operator, derived completely independently from a purely frequency-domain argument, reproduces the
+  exact spatial-domain kernel you'd have written down by hand.</p>
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Laplacian sharpening via the frequency domain</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/laplacian_freq_response.png"><div class="lbl">−laplacian
+      response (edge map)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/laplacian_sharpened.png"><div class="lbl">f − c·laplacian
+      (sharpened)</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="concept" id="homomorphic">
+  <h2 class="concept-title">5.3 · Homomorphic filtering</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-10.png"></div>
+  <p>A different, harder problem: correcting for <em>uneven lighting</em> — a photo where one corner is
+  brightly lit and another is in shadow, so the same physical surface reads as very different gray levels
+  depending on where it sits in the frame. Naively brightening the dark areas would also blow out the bright
+  ones; a single global operation cannot fix illumination that varies across the image.</p>
+
+  <h3>The image formation model that makes this solvable</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-11.png"></div>
+  <div class="formula">f(x,y) = i(x,y) · r(x,y)</div>
+  <p>Any image is modeled as the product of two physically distinct components: <strong>illumination</strong>
+  i(x,y) — how much light is falling on a point, which typically varies slowly and smoothly across a scene —
+  and <strong>reflectance</strong> r(x,y) — how much of that light the surface at that point reflects, which
+  changes rapidly wherever the material or texture changes (an edge, a texture boundary). The idea driving
+  everything that follows: illumination lives mostly at low spatial frequency, reflectance lives mostly at
+  high spatial frequency, so if they can be separated, illumination can be suppressed while reflectance is
+  preserved (or even boosted) — correcting the lighting without touching the actual detail.</p>
+
+  <h3>Why you can't just low/high-pass filter it directly</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-12.png"></div>
+  <div class="formula">f(x,y) = i(x,y)·r(x,y) &nbsp;⟺&nbsp; F(u,v) = I(u,v) * R(u,v)</div>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    Because i and r are <em>multiplied</em> in the spatial domain, the Convolution Theorem (Section 1.3) says
+    their spectra are <em>convolved</em> together in the frequency domain — not simply added or stacked
+    side-by-side. Convolution smears the two spectra into each other, so I(u,v) and R(u,v) cannot be pulled
+    back apart just by drawing a circle in frequency space and filtering: F(u,v)·H(u,v) filters the tangled-up
+    mixture as a whole, not each component independently. Separating a product needs a fundamentally different
+    trick, not just a better-chosen H(u,v).
+  </div>
+
+  <h3>The trick: logarithms turn multiplication into addition</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-13.png"></div>
+  <div class="formula">ln(f(x,y)) = ln(i(x,y)) + ln(r(x,y))</div>
+  <p>Taking the natural log of both sides converts the product into a sum. Sums of spectra <em>do</em> stay
+  cleanly separated under the Fourier transform (Fourier transforms are linear), so now ordinary frequency
+  filtering becomes valid again — filtering can act differently on the "illumination part" versus the
+  "reflectance part" of the log-image, because they are no longer tangled by a convolution.</p>
+
+  <h3>The five-step pipeline</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-09.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-14.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-16.png"></div>
+  <ol>
+    <li><strong>ln</strong> — take the logarithm of f(x,y), turning the illumination×reflectance product into a
+    sum.</li>
+    <li><strong>DFT</strong> — transform the log-image into the frequency domain: Z(u,v) = Illum(u,v) +
+    Refl(u,v).</li>
+    <li><strong>Apply H(u,v)</strong> — a filter shaped to suppress the low-frequency Illum(u,v) term while
+    preserving or amplifying the high-frequency Refl(u,v) term.</li>
+    <li><strong>Inverse DFT</strong> — back to the spatial domain, giving a sum of a corrected illumination part
+    and a corrected reflectance part.</li>
+    <li><strong>exp</strong> — undo the very first step's logarithm, turning the sum back into a product:
+    g(x,y) = i₀(x,y)·r₀(x,y), the corrected image.</li>
+  </ol>
+
+  <h3>The filter shape H(u,v) needs</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck5-15.png"></div>
+  <div class="formula">γ<sub>L</sub> &lt; 1, &nbsp; γ<sub>H</sub> &gt; 1</div>
+  <p>H(u,v) is shaped like a high-pass filter but never actually reaches zero: it sits at a low but nonzero
+  gain γ<sub>L</sub> &lt; 1 near the center (attenuating, not deleting, the illumination-dominated low
+  frequencies) and rises to a gain γ<sub>H</sub> &gt; 1 at high frequencies (amplifying, not just preserving,
+  the reflectance-dominated detail). Both requirements matter: γ<sub>L</sub> &lt; 1 rather than 0 is what
+  distinguishes this from a plain high-pass filter and avoids the "featureless, DC-erased" problem from Section
+  4.2, while γ<sub>H</sub> &gt; 1 gives a genuine contrast boost to fine detail on top of the illumination fix.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Correcting a synthetic uneven-illumination photograph</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original (even lighting)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/homomorphic_illum_field.png"><div class="lbl">synthetic
+      illumination field i(x,y) — a vignette</div></div>
+      <div class="sim-img-box"><img src="assets/sims/homomorphic_uneven_input.png"><div class="lbl">f = i·r —
+      unevenly lit input</div></div>
+      <div class="sim-img-box"><img src="assets/sims/homomorphic_corrected.png"><div class="lbl">g = i₀·r₀ —
+      after homomorphic filtering</div></div>
+    </div>
+    <p style="margin-top:10px">A synthetic vignette (bright upper-left, dark lower-right) was multiplied onto
+    the original to fabricate an unevenly-lit input, exactly matching f(x,y) = i(x,y)r(x,y). After running the
+    five-step pipeline above (D0 = 30, γ<sub>L</sub> = 0.5, γ<sub>H</sub> = 1.8), the corrected result both
+    flattens out the vignette's large-scale brightness gradient <em>and</em> pulls out noticeably more local
+    contrast and texture in what was the darkest corner — the simultaneous "compress the dynamic range,
+    sharpen the detail" signature that makes homomorphic filtering a standard tool for images with harsh,
+    uneven lighting (a common problem in aerial and satellite photography, which is the application this
+    technique was originally developed for).</p>
+  </div>
+</section>

@@ -1,0 +1,107 @@
+<div class="hero">
+  <span class="kicker">PES University · UE24CS343AB1 — Image Processing</span>
+  <h1>Unit 2 Study Guide</h1>
+  <p class="dek">This unit takes an image out of the pixel grid entirely — into the frequency domain, then into
+  a family of increasingly clever transform bases — and ends by asking the practical question every one of
+  those detours was really in service of: how small can an image file actually get? Eleven lecture decks,
+  restructured here into eleven concept-driven sections, with every filter, transform, and code demonstrated
+  live on one working photograph (<code>sample.png</code>) so the numbers in the text are numbers you can see.</p>
+</div>
+
+<section class="concept" id="the-arc">
+  <h2 class="concept-title">The arc of the unit</h2>
+  <p>Three big movements, each building directly on the last:</p>
+
+  <h3>I. Frequency domain fundamentals (Sections 1–5)</h3>
+  <p>What "frequency" means for an image, why the Fourier transform lets you filter by simple multiplication
+  instead of sliding-window convolution, what can go wrong when you sample a continuous scene onto a discrete
+  grid, and the three canonical things you can do to a spectrum once you're looking at one: smooth it, sharpen
+  it, or fix its lighting.</p>
+
+  <h3>II. Beyond Fourier — choosing a better basis (Sections 6–7)</h3>
+  <p>Every transform in Part I turns out to be one special case of a much more general idea: re-describe a
+  signal against <em>any</em> orthonormal set of reference patterns, not just sinusoids. Once that's explicit,
+  new choices of basis — Haar's local plus/minus pulses, the DCT's boundary-friendly cosines, wavelets'
+  zoom-in-and-out pyramids — become available, each trading off energy compaction, computational cost, and
+  spatial locality differently.</p>
+
+  <h3>III. Compression — putting the energy-compaction idea to work (Sections 8–11)</h3>
+  <p>A transform that concentrates most of an image's energy into a handful of coefficients is most of the way
+  to a compression scheme already. The last four sections close the loop: measuring redundancy, building an
+  optimal entropy code (Huffman), exploiting spatial repetition directly (run-length, symbol-based, bit-plane
+  coding), and finally assembling all of it — block-wise DCT, quantization, zigzag ordering, run-length
+  coding, Huffman coding — into the JPEG standard itself.</p>
+</section>
+
+<section class="concept" id="sections">
+  <h2 class="concept-title">Sections</h2>
+  <div class="grid-2">
+    <div class="qbox"><span class="qnum">Section 1</span>
+      <h4>Frequency Domain &amp; the Fourier Transform</h4>
+      <p>What spatial frequency is, the Fourier series/transform, the DFT, and why filtering in frequency
+      space is so much cheaper than spatial convolution.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 2</span>
+      <h4>Sampling, Aliasing &amp; Interpolation</h4>
+      <p>The sampling theorem, why aliasing can look perfectly normal and be completely wrong, and how
+      resizing an image is itself a sampling problem.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 3</span>
+      <h4>Smoothing Filters in the Frequency Domain</h4>
+      <p>Ideal, Gaussian, and Butterworth low-pass filters — and the ringing artifact that separates them.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 4</span>
+      <h4>Sharpening Filters in the Frequency Domain</h4>
+      <p>High-pass filtering as the mirror image of Section 3, and why a pure high-pass result looks like
+      line art.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 5</span>
+      <h4>Unsharp Masking &amp; Homomorphic Filtering</h4>
+      <p>Adding high-frequency content back instead of discarding everything else, and separating illumination
+      from reflectance with a logarithm.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 6</span>
+      <h4>Matrix-Based Transforms &amp; Basis Images</h4>
+      <p>Every transform as one matrix multiply — orthonormal bases, energy conservation, compaction, and
+      decorrelation.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 7</span>
+      <h4>Haar, DCT, DST and Wavelet Transforms</h4>
+      <p>A local, blocky basis; a boundary-friendly cosine basis; and a multiresolution wavelet basis — three
+      genuinely different answers to "what should the reference patterns be?"</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 8</span>
+      <h4>Image Compression Fundamentals</h4>
+      <p>Coding, spatial, and psychovisual redundancy; compression ratio and fidelity; the encoder/decoder
+      pipeline every scheme in this unit fits into.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 9</span>
+      <h4>Huffman Coding</h4>
+      <p>Entropy as a theoretical floor, the Huffman algorithm, and a live in-browser demo building a real
+      Huffman code from this guide's own working image.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 10</span>
+      <h4>Run-Length, Symbol-Based &amp; Bit-Plane Coding</h4>
+      <p>RLE and the CCITT fax standards, symbol dictionaries and JBIG2, and slicing an image into its 8
+      constituent bit-planes.</p>
+    </div>
+    <div class="qbox"><span class="qnum">Section 11</span>
+      <h4>Block Transform Coding &amp; JPEG</h4>
+      <p>Where every earlier idea converges: 8×8 DCT blocks, quantization, zigzag ordering, run-length +
+      Huffman coding — and the wavelet-based JPEG-2000 that followed it.</p>
+    </div>
+  </div>
+</section>
+
+<section class="concept" id="how-to-use">
+  <h2 class="concept-title">How this guide is built</h2>
+  <p>Every lecture slide from the original eleven decks appears somewhere in these eleven sections — reordered
+  by concept rather than by original slide order where that made the material clearer (most visibly, Deck 2's
+  sampling/aliasing content is separated from its Fourier-transform recap, which is folded into Section 1
+  instead). Slides that are pure recaps of material already explained in full are shown as a screenshot with a
+  short caption rather than re-explained from scratch.</p>
+  <p>Wherever a filter, transform, or code makes more sense seen than described, this guide runs it for real on
+  a single working photograph and shows the actual output — not a stock textbook figure. Every number quoted
+  in a simulation box (entropy, compression ratios, energy percentages) was computed directly from that image,
+  not invented for the example.</p>
+</section>

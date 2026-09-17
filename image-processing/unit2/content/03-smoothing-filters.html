@@ -1,0 +1,189 @@
+<div class="hero">
+  <span class="kicker">Lecture 3 · Deck 3</span>
+  <h1>Smoothing Filters in the Frequency Domain</h1>
+  <p class="dek">Sections 1–2 built the machinery (Fourier transform, DFT, sampling). This is the first section
+  that actually <em>uses</em> it to do something to an image: remove high frequencies on purpose, to blur or
+  denoise. Every idea here reduces to one formula, three different shapes for one filter, and one
+  unavoidable trade-off.</p>
+</div>
+
+<section class="concept" id="enhancement-map">
+  <h2 class="concept-title">3.1 · Where this sits in the bigger picture</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-02.png"></div>
+  <p>Image enhancement splits into spatial-domain methods (Unit 1's territory: point processing like negatives
+  and contrast stretching, and neighborhood processing like averaging/median filters) and frequency-domain
+  methods, which is everything from here through Section 5. Deck 3's own map of the frequency-domain branch is
+  worth keeping in view for the next three sections, since it previews exactly where each upcoming topic sits:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-03.png"></div>
+  <table>
+    <tr><th>Branch</th><th>Members</th><th>Covered in</th></tr>
+    <tr><td>Smoothing filters (LPF)</td><td>Ideal, Butterworth, Gaussian</td><td>this section</td></tr>
+    <tr><td>Sharpening filters (HPF)</td><td>Ideal, Butterworth, Gaussian</td><td>Section 4</td></tr>
+    <tr><td>High-boost / Homomorphic</td><td>—</td><td>Section 5</td></tr>
+  </table>
+  <p>One more orienting fact worth pinning down before diving in — the frequency domain and the spatial domain
+  describe the exact same image, just in two different coordinate systems:</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-04.png"></div>
+</section>
+
+<section class="concept" id="the-filtering-model">
+  <h2 class="concept-title">3.2 · The one formula behind every filter in Sections 3–5</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-05.png"></div>
+  <div class="formula">G(u,v) = H(u,v) · F(u,v)</div>
+  <p>F(u,v) is the DFT of the input image (Section 1.5). H(u,v) is the <strong>filter transfer function</strong>
+  — a grid the same size as F(u,v), holding one multiplier per frequency. G(u,v) is the filtered result, still
+  in the frequency domain; running the inverse DFT on G(u,v) gives back the filtered image. Every filter from
+  here to the end of Section 5 is nothing more than a different recipe for H(u,v) — the multiplication step
+  never changes, only the shape of H.</p>
+  <p>For smoothing, the recipe is simple: H(u,v) should be large (close to 1) near the center (the low
+  frequencies) and small (close to 0) far from the center (the high frequencies), so that low frequencies pass
+  through mostly untouched while high frequencies get suppressed. This is exactly why the technique is called a
+  <strong>low-pass filter (LPF)</strong>.</p>
+</section>
+
+<section class="concept" id="ideal-lpf">
+  <h2 class="concept-title">3.3 · The Ideal Low-Pass Filter</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-06.png"></div>
+  <div class="formula">
+    H(u,v) = 1 &nbsp;if D(u,v) ≤ D₀ &nbsp;&nbsp;&nbsp; H(u,v) = 0 &nbsp;if D(u,v) &gt; D₀<br>
+    where D(u,v) = [(u − M/2)² + (v − N/2)²]<sup>1/2</sup>
+  </div>
+  <p>D(u,v) is just the Euclidean distance of a frequency coordinate (u,v) from the spectrum's center (the DC
+  term, at (M/2, N/2) after the shift used for display). The "ideal" filter is the most literal possible
+  reading of "drop everything past a cutoff": a hard disc of radius D₀ that passes every frequency inside it
+  unchanged and kills every frequency outside it completely. It is called "ideal" because it is the
+  mathematically simplest cutoff you could write down — not because it produces the best-looking result, as
+  the next figure demonstrates.</p>
+
+  <h3>Choosing D₀ by how much energy it keeps</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-07.png"></div>
+  <p>Rather than picking D₀ arbitrarily, it can be chosen by asking "what radius circle, centered at the
+  origin, enclosed α percent of the image's total spectral power?" — where power at (u,v) is |F(u,v)|² and the
+  total power P<sub>T</sub> is the sum over the whole spectrum:</p>
+  <div class="formula">α = 100 · [ ΣΣ P(u,v) / P<sub>T</sub> ]</div>
+  <p>The slide's own test image shows the trade-off starkly: a tiny radius-5 disc already keeps 92% of the
+  power (removes only 8%) yet the result is a smear with barely recognizable shapes. A radius-80 disc keeps
+  98% of the power and looks nearly indistinguishable from the original. Two things to notice: first, most of an
+  image's energy really does sit at low frequency (echoing the energy-compaction preview from Section 1.5);
+  second, even removing a "small" percentage of power at the wrong frequencies (namely, all the high ones)
+  can be visually devastating, because energy and visual importance are not the same currency — a small amount
+  of high-frequency energy carries a disproportionate amount of edge and detail information.</p>
+
+  <h3>Ringing: the ideal filter's characteristic defect</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-08.png"></div>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    A hard cutoff in the frequency domain does not produce a hard, clean result in the spatial domain — it
+    produces <em>ringing</em>: faint, concentric echo-like ripples radiating outward from every edge. The
+    Convolution Theorem (Section 1.3) explains why: multiplying by H(u,v) in frequency space is the same as
+    convolving the image with H's spatial-domain counterpart. The ideal filter's spatial-domain version is a
+    sinc-like function with a big central lobe (which causes the blurring) surrounded by smaller side-lobes
+    that alternate sign (which cause the ringing) — a mathematical consequence of forcing an abrupt jump from 1
+    to 0 in the frequency domain. Every pixel effectively gets a small ripple-copy of that sinc function
+    stamped down on it, and neighboring ripples interfere to produce the visible rings around edges.
+  </div>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Ideal LPF at increasing cutoff radius</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_ideal_10.png"><div class="lbl">D0 = 10</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_ideal_30.png"><div class="lbl">D0 = 30</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_ideal_60.png"><div class="lbl">D0 = 60</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_ideal_120.png"><div class="lbl">D0 = 120</div></div>
+    </div>
+    <p style="margin-top:10px">Look closely at the D0 = 10 and D0 = 30 results (open the image at full size if
+    you can) — a faint fabric-like crosshatch texture is visible across the <em>entire</em> smoothed region,
+    not just near strong edges. That texture is ringing: the hard-edged circular cutoff in the frequency domain
+    convolves every pixel with the sinc function's oscillating rings. Compare this against the Gaussian result
+    at a similar blur strength below, which shows no such texture at all — that contrast is the whole
+    argument for why the ideal filter is a teaching example more than a practical one.</p>
+  </div>
+</section>
+
+<section class="concept" id="gaussian-lpf">
+  <h2 class="concept-title">3.4 · The Gaussian Low-Pass Filter</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-09.png"></div>
+  <div class="formula">H(u,v) = e <sup>−D²(u,v) / 2D₀²</sup></div>
+  <p>Instead of a hard wall, the Gaussian filter uses a smooth bell curve as a function of distance from the
+  center — H(u,v) starts at 1 for D = 0 and decays smoothly and continuously toward 0 as D grows, never making
+  a sudden jump anywhere. D₀ plays the role of the Gaussian's standard deviation (σ = D₀), setting how quickly
+  the bell curve falls off.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-10.png"></div>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    The Gaussian is one of the very few functions whose Fourier transform is <em>also</em> a Gaussian — a
+    smooth bell curve in the frequency domain corresponds to a smooth bell curve in the spatial domain, with no
+    side-lobes at all. That is precisely why Gaussian filtering produces zero ringing: there is no oscillating
+    sinc-like tail to convolve with. The price is a less sharply-defined cutoff — "low-pass" here means "mostly
+    passes low frequencies and gradually attenuates higher ones," not "passes everything below D₀ and nothing
+    above it."
+  </div>
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Gaussian LPF at increasing cutoff — no ringing, ever</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_gauss_10.png"><div class="lbl">D0 = 10</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_gauss_30.png"><div class="lbl">D0 = 30</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_gauss_60.png"><div class="lbl">D0 = 60</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_gauss_120.png"><div class="lbl">D0 = 120</div></div>
+    </div>
+    <p style="margin-top:10px">Same cutoff radii as the ideal-filter comparison above, and visibly softer,
+    "creamier" blurring at every setting — with none of the faint crosshatching seen in the ideal-filter
+    version. This is the direct, visual payoff of a filter with no side-lobes in its spatial kernel.</p>
+  </div>
+</section>
+
+<section class="concept" id="butterworth-lpf">
+  <h2 class="concept-title">3.5 · The Butterworth Low-Pass Filter</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-11.png"></div>
+  <div class="caption-only"><img src="assets/deck3-12.png"><span class="cap-text">Deck 3, slide 12 — Butterworth
+  LPF (order 2) results at cutoff radii 5, 15, 30, 80, 230, mirroring the ideal/Gaussian result grids above.</span></div>
+  <div class="formula">H(u,v) = 1 / [ 1 + (D(u,v)/D₀) <sup>2n</sup> ]</div>
+  <p>The Butterworth filter is a tunable middle ground between the previous two extremes, controlled by its
+  <strong>order n</strong>:</p>
+  <ul>
+    <li>As n grows large, the transition from 1 to 0 gets steeper and steeper, and the filter's behavior
+    converges toward the ideal filter's hard cutoff.</li>
+    <li>As n shrinks toward 1, the transition softens and the filter's behavior approaches the Gaussian's
+    smooth roll-off.</li>
+  </ul>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-14.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck3-15.png"></div>
+  <p>The spatial-domain kernels make the trade-off visible directly: order-1 has no ringing and no negative
+  values at all; order-2 shows only mild, usually imperceptible ringing; by order-20 the kernel looks
+  essentially identical to the ideal filter's ringing sinc pattern. This gives a practical rule of thumb the
+  slides state directly: <strong>orders 2–3 are the sweet spot</strong> — steep enough to filter effectively,
+  gentle enough that ringing stays negligible.</p>
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Butterworth LPF (order 2) at increasing cutoff</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_butter_10.png"><div class="lbl">D0 = 10, n = 2</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_butter_30.png"><div class="lbl">D0 = 30, n = 2</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_butter_60.png"><div class="lbl">D0 = 60, n = 2</div></div>
+      <div class="sim-img-box"><img src="assets/sims/lpf_butter_120.png"><div class="lbl">D0 = 120, n = 2</div></div>
+    </div>
+    <p style="margin-top:10px">At order 2, the Butterworth results sit almost exactly between the ideal and
+    Gaussian versions above: noticeably sharper-edged blurring than the Gaussian at the same D0, but without the
+    Gaussian's slightly heavier smoothing at the same nominal cutoff — and none of the ideal filter's visible
+    crosshatch texture.</p>
+  </div>
+
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    All three filters are ultimately trading off the same three properties against each other, and no filter
+    shape escapes the trade-off — it only chooses where to sit on it:
+    <table style="margin-top:10px">
+      <tr><th>Filter</th><th>Cutoff sharpness</th><th>Ringing</th><th>Extra control</th></tr>
+      <tr><td>Ideal</td><td>Perfectly sharp</td><td>Severe</td><td>none (just D₀)</td></tr>
+      <tr><td>Gaussian</td><td>Very gradual</td><td>None</td><td>none (just D₀)</td></tr>
+      <tr><td>Butterworth</td><td>Tunable</td><td>Tunable (via n)</td><td>order n</td></tr>
+    </table>
+    This is why Butterworth filters are generally preferred in real systems: Ideal and Gaussian are the two
+    fixed endpoints of a spectrum that Butterworth lets you dial to anywhere in between.
+  </div>
+</section>

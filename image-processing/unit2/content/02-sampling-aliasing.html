@@ -1,0 +1,247 @@
+<div class="hero">
+  <span class="kicker">Lecture 2 · Deck 2, slides 1–20</span>
+  <h1>Sampling, Aliasing &amp; Interpolation</h1>
+  <p class="dek">Section 1 established that frequency is a real, measurable property of an image. This section asks
+  a sharper question: when a camera (or a scanner, or a resize operation) turns a continuous scene into a
+  finite grid of pixels, what can go wrong — and why is the answer sometimes "the resulting image looks
+  completely normal, and is completely wrong"?</p>
+</div>
+
+<section class="concept" id="what-is-aliasing">
+  <h2 class="concept-title">2.1 · What is aliasing?</h2>
+  <div class="caption-only"><img src="assets/deck2-02.png"><span class="cap-text">Deck 2, slide 2 — section
+  divider.</span></div>
+  <p>Every digital image starts life as a continuous signal — light hitting a sensor — that gets <em>sampled</em>
+  at discrete points. Sampling is inherently a lossy step: you are throwing away everything that happened
+  between the sample points and hoping it didn't matter. Aliasing is the name for what happens when it did
+  matter: fine, repetitive detail that changes faster than the sampling grid can track gets misread as a
+  completely different, usually coarser, pattern.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-03.png"></div>
+  <p>The tell-tale wavy interference pattern on the round tower above is not something that existed on the real
+  building — the bricks are laid in a perfectly regular grid. It is an artifact created purely by the act of
+  photographing that regular brick pattern at a sampling rate that could not keep up with it.</p>
+  <div class="formula">Aliasing: two or more <em>different</em> continuous signals become <em>identical</em> once sampled.</div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-06.png"></div>
+  <p>Slide 6 makes the definition precise with the cleanest possible example: two genuinely different sine
+  waves, sampled at the same (too-slow) rate, produce the exact same sequence of sample points. Once you only
+  have the samples, there is no way to tell which of the two original waves you started with — the information
+  distinguishing them was destroyed at the moment of sampling, not lost afterward. This pair of indistinguishable
+  signals is called an <strong>aliased pair</strong>.</p>
+</section>
+
+<section class="concept" id="sampling-theorem">
+  <h2 class="concept-title">2.2 · The Sampling Theorem and the Nyquist rate</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-04.png"></div>
+  <div class="formula">1/ΔT &gt; 2·μ<sub>max</sub></div>
+  <p>In plain language: if a signal's fastest-oscillating component has frequency μ<sub>max</sub>, you must
+  take samples at a rate exceeding <strong>twice</strong> that frequency to have any hope of perfectly
+  reconstructing the original signal from the samples. Exactly twice μ<sub>max</sub> is called the
+  <strong>Nyquist rate</strong> — a name worth knowing, because it is the single most load-bearing term in this
+  whole section.</p>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    You might expect that sampling <em>exactly</em> at the Nyquist rate is always enough. The slide is careful
+    to say it is only "sometimes sufficient" — there are edge cases (for instance, sampling a sine wave exactly
+    at its own peaks and troughs happens to work, but sampling it exactly at its zero-crossings would recover a
+    flat line). This is precisely why the theorem is stated with a strict inequality (<em>exceeding</em> twice
+    the frequency), not "greater than or equal to" — real systems build in a safety margin above the Nyquist
+    rate rather than sampling exactly at it.
+  </div>
+  <p>The bottom three panels of slide 4 show the frequency-domain mechanics behind recovery: sampling a
+  continuous band-limited signal makes its spectrum repeat infinitely (top panel — this periodic repetition is
+  a direct mathematical consequence of sampling, not something specific to images). An ideal low-pass filter
+  (middle panel) can cut out exactly one of those repeated copies — but only if the copies are spaced far
+  enough apart not to overlap. Sample too slowly and the repeated copies overlap each other, and no filter,
+  however good, can separate them back out again. That overlap <em>is</em> aliasing, seen from the frequency
+  domain rather than the "two sine waves look the same" spatial-domain view above.</p>
+
+  <h3>What this means for images specifically</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-10.png"></div>
+  <p>Images bring two flavors of the same underlying problem:</p>
+  <ul>
+    <li><strong>Spatial aliasing</strong> — caused by under-sampling a single frame; shows up most in images
+    with fine repeating patterns (brick walls, fabric weaves, window screens).</li>
+    <li><strong>Temporal aliasing</strong> — the same idea along the time axis of a video, when the frame rate
+    is too slow relative to how fast something moves. The classic example is the "wagon-wheel effect": a
+    stagecoach wheel filmed at 24 frames per second can appear to rotate slowly backward, because each frame
+    happens to catch a spoke very close to (but not exactly at) the position of the previous spoke — the
+    camera's frame rate is aliasing the wheel's true rotation rate down to a much slower, even reversed,
+    apparent rate.</li>
+  </ul>
+</section>
+
+<section class="concept" id="spatial-aliasing-visualized">
+  <h2 class="concept-title">2.3 · Seeing spatial aliasing happen</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-05.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-11.png"></div>
+  <p>Overlay a fixed sampling grid on regions of increasing stripe frequency, and the behavior is not uniform:</p>
+  <ul>
+    <li><strong>Low-frequency region</strong> — the grid samples the stripes plenty of times per cycle; the
+    reconstructed edges are only mildly jagged.</li>
+    <li><strong>Mid-frequency region</strong> — fewer samples per cycle, so jaggedness increases even though
+    the sampling rate hasn't changed — only the signal's own frequency has.</li>
+    <li><strong>High-frequency region</strong> — the stripes now oscillate faster than the sampling grid can
+    track. The reconstruction doesn't just get "worse" in the way blur gets worse — it produces
+    <em>entirely new</em>, lower-frequency stripes, rotated relative to the originals, that were never in the
+    source at all.</li>
+  </ul>
+  <div class="callout">
+    <span class="tag">The counterintuitive part</span>
+    Aliasing does not degrade gracefully the way noise or blur does. A blurred image still obviously
+    resembles the original, just softer. An aliased image can look perfectly sharp, perfectly clean, and
+    perfectly plausible — while showing you a pattern that has no relationship whatsoever to the real scene.
+    "It looks fine" is not evidence that an image was sampled correctly.
+  </div>
+</section>
+
+<section class="concept" id="cant-fix-later">
+  <h2 class="concept-title">2.4 · Why you can't fix aliasing after the fact</h2>
+  <div class="caption-only"><img src="assets/deck2-09.png"><span class="cap-text">Deck 2, slide 9 — recap: aliased
+  functions can bear no resemblance to the original; fix by smoothing before sampling (anti-aliasing).</span></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-07.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-08.png"></div>
+  <p>Once the overlapping copies in the frequency domain have merged (Section 2.2's overlap), the information
+  needed to tell them apart is gone from the samples — no amount of post-processing can un-merge them, because
+  post-processing can only operate on the samples you actually have. This is why the fix has to happen
+  <strong>before</strong> sampling: pre-filter (defocus / low-pass) the continuous signal so that its own
+  μ<sub>max</sub> already respects the Nyquist limit of the sampling rate you're about to use. This is called
+  <strong>anti-aliasing</strong>, and the name is precise about timing — it is a preventative step, not a cure.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-12.png"></div>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    This resolves a naming confusion the slide flags but doesn't fully untangle: image-editing software often
+    has a button literally labeled "anti-aliasing," and it does help — but it is solving a <em>different,
+    second</em> sampling problem (the one introduced by resampling the software's own internal representation
+    while resizing/rotating), not the sampling that already happened when the original photograph's continuous
+    light hit the discrete sensor grid. The first aliasing event is permanent and unrecoverable; the
+    software-level control only prevents new aliasing being added on top of it.
+  </div>
+  <p>This is also exactly why real cameras and even biological eyes build in physical anti-aliasing: an
+  optical low-pass filter over the sensor, or (in the eye) the finite blur introduced by the lens and by the
+  spacing of photoreceptors, both quietly discard frequencies that the downstream sampling grid could not
+  represent safely anyway.</p>
+
+  <h3>Worked example: the checkerboard that lies to you</h3>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-13.png"></div>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-14.png"></div>
+  <p>With one sample per pixel, the Nyquist limit is exactly ½ cycle/pixel. Walking the square size down:</p>
+  <ul>
+    <li><strong>16×16 and 6×6 pixel squares</strong> — comfortably below ½ cycle/pixel → rendered correctly.</li>
+    <li><strong>Squares slightly under 1 pixel</strong> — the pattern's true frequency is now far above what
+    one-sample-per-pixel can represent → severe, obviously-wrong aliasing (the grainy noise-like patch).</li>
+    <li><strong>Squares slightly under 0.5 pixels</strong> — pushed even further past the limit, the aliasing
+    "wraps around" again and produces a <em>different</em>, perfectly regular-looking checkerboard — one that
+    is entirely fabricated by the sampling process and bears no relationship to the true, much finer pattern.</li>
+  </ul>
+  <p>That last case is the sharpest possible illustration of Section 2.3's counterintuitive point: it is
+  indistinguishable, just by looking at it, from a correctly-sampled image.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · synthetic stripe pattern, same recipe as the slide</span>
+    <h4>Reproducing the checkerboard lesson numerically</h4>
+    <p>Three vertical-stripe patterns of different periods, each decimated (nearest-neighbor subsampling) by
+    the same factor of 8 — mimicking "one sample per pixel" at three different underlying pattern frequencies:</p>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/stripes_period_40_subsampled.png"><div class="lbl">period = 40 px<br>(5 samples/period — safely resolved)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/stripes_period_6_subsampled.png"><div class="lbl">period = 6 px<br>(0.75 samples/period — already aliased)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/stripes_period_2_2_subsampled.png"><div class="lbl">period = 2.2 px<br>(0.28 samples/period — severely aliased)</div></div>
+    </div>
+    <p style="margin-top:10px">The first pattern reproduces cleanly. The other two both come out looking like
+    ordinary, regular, "clean" stripe patterns — at completely wrong, fabricated periods — which is the exact
+    phenomenon the slide's checkerboard example is demonstrating: undersampling doesn't announce itself as
+    noise, it confidently reports the wrong answer.</p>
+  </div>
+</section>
+
+<section class="concept" id="resampling-interpolation">
+  <h2 class="concept-title">2.5 · Image resampling and interpolation</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-15.png"></div>
+  <p>Resizing an image is itself a resampling operation, so everything above applies directly:</p>
+  <ul>
+    <li><strong>Zooming</strong> (enlarging) is <em>oversampling</em> — you need to invent extra sample points
+    that were never actually captured, via interpolation.</li>
+    <li><strong>Shrinking</strong> is <em>undersampling</em> — you are literally reducing the sampling rate
+    below what it was, which is exactly the situation Section 2.2's theorem warns about.</li>
+  </ul>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-16.png"></div>
+  <p>Nearest-neighbor interpolation — the simplest possible zoom, just replicate the nearest known pixel — is
+  cheap but reintroduces aliasing of its own: since it invents no new intermediate values, a diagonal or
+  curved edge in the source becomes a staircase of harshly-bounded blocks ("jaggies") in the enlarged result.
+  Shrinking has the opposite danger: naive shrinking (just deleting pixels, i.e. plain decimation with no
+  pre-filtering) violates the sampling theorem exactly the way the checkerboard example did.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-17.png"></div>
+  <p>Figure 4.19 nails the fix directly to the theorem: (a) is a normal photo; (b) shrinks it by naive pixel
+  deletion and then restores the original size by pixel replication — the striped scarf now shows obvious,
+  ugly interference; (c) applies an averaging (low-pass) filter <em>before</em> the same shrink-and-restore, and
+  the aliasing disappears, at the cost of a slightly softer image. (c) is anti-aliasing in miniature: exactly
+  the pre-filter-before-you-sample discipline from Section 2.4.</p>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Naive shrink vs. anti-aliased shrink</h4>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/gray.png"><div class="lbl">original</div></div>
+      <div class="sim-img-box"><img src="assets/sims/shrink_naive.png"><div class="lbl">shrunk ×4 by plain
+      decimation (no pre-filter)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/shrink_antialiased.png"><div class="lbl">shrunk ×4 after a
+      Gaussian pre-filter (anti-aliased)</div></div>
+    </div>
+    <p style="margin-top:10px">Look closely at fine texture in the cloud pattern and the fabric folds: the
+    naive version shows faint false patterning where high-frequency detail was folded down into spurious
+    low-frequency artifacts, while the pre-filtered version renders the same regions as clean, honest soft
+    detail — it lost information, but did not fabricate any.</p>
+  </div>
+
+  <div class="sim">
+    <span class="sim-tag">Simulation · sample.png</span>
+    <h4>Zooming: nearest-neighbor vs. bilinear vs. bicubic</h4>
+    <p>The same small (57×73) source image, enlarged 6× back to its original size by three interpolation
+    methods:</p>
+    <div class="sim-row">
+      <div class="sim-img-box"><img src="assets/sims/zoom_source_small.png"><div class="lbl">small source</div></div>
+      <div class="sim-img-box"><img src="assets/sims/zoom_nearest.png"><div class="lbl">nearest-neighbor
+      (pixel replication)</div></div>
+      <div class="sim-img-box"><img src="assets/sims/zoom_bilinear.png"><div class="lbl">bilinear</div></div>
+      <div class="sim-img-box"><img src="assets/sims/zoom_bicubic.png"><div class="lbl">bicubic</div></div>
+    </div>
+    <p style="margin-top:10px">Nearest-neighbor produces exactly the hard, blocky jaggies the slide warns
+    about — every edge in the image is now a staircase. Bilinear (averaging the nearest 2×2 neighborhood)
+    softens those staircases into gradual ramps. Bicubic (a wider, smoother weighted average over a 4×4
+    neighborhood) goes further still, producing the smoothest edges of the three at the cost of the most
+    computation — the general pattern for every interpolation method in this unit: more neighboring samples
+    consulted, smoother result, higher cost.</p>
+  </div>
+</section>
+
+<section class="concept" id="moire">
+  <h2 class="concept-title">2.6 · Moiré patterns</h2>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-18.png"></div>
+  <p>A Moiré pattern is what you get when two regular, fine patterns of nearly the same spacing are
+  superimposed — think two layers of insect window screen, or a striped shirt on a TV camera. The slide's key
+  clarifying point: Moiré is not exclusively a digital sampling artifact. It is a more general phenomenon of
+  <em>any</em> two overlapping periodic gratings, digital or purely optical.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-19.png"></div>
+  <div class="added">
+    <span class="tag">Filling a gap the slide leaves implicit</span>
+    The caption under the vector-drawing figure says superimposing two patterns "is analogous to multiplying
+    the patterns" — worth making concrete, because it is the same convolution-theorem machinery from Section
+    1.3. Multiplying two gratings in the spatial domain corresponds (again via the Convolution Theorem, this
+    time in its "multiplication ↔ convolution" direction) to <em>convolving</em> their two spectra in the
+    frequency domain. Convolving two spectra that each have energy concentrated at some frequency f produces
+    new energy at both the sum (2f-ish) and, critically, the <em>difference</em> of the two original
+    frequencies. When the two gratings have nearly equal spacing, that difference frequency is very low — a
+    slow, large-scale pattern is exactly what a "high-frequency minus a very similar high-frequency" produces,
+    which is precisely the coarse wavy pattern you see in a Moiré effect.
+  </div>
+  <p>Digital sampling then adds its own contribution: sampling a fine, regular print pattern (halftone dots, or
+  any repetitive texture) with a sampling grid of comparable spacing is itself "superimposing two gratings" —
+  the image content and the sampling lattice — so ordinary aliasing and true optical Moiré end up looking and
+  behaving alike, even though the underlying cause is slightly different in each case.</p>
+  <div class="slide-wrap"><img class="slide-shot" src="assets/deck2-20.png"></div>
+  <p>Newspapers print grayscale photos using halftone dots — clusters of pure black dots of varying size and
+  spacing that the eye blends into apparent gray levels. Digitizing (scanning) such a print at a resolution
+  close to the dot spacing beats the two patterns (dot grid × scanner sampling grid) against each other,
+  producing the blotchy interference visible above — a direct, real-world instance of the Section 2.3
+  "sampling grid vs. pattern frequency" story, and the reason professional scanning of printed halftones uses
+  descreening (a deliberate blur/low-pass filter) before resampling.</p>
+</section>

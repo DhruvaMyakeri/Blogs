@@ -1,7 +1,8 @@
-import os, re, base64, mimetypes
+import os, re
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CONTENT = os.path.join(ROOT, "content")
+SITE_PREFIX = "/image-processing/unit2"
 
 PAGES = [
     ("index", "Overview", "Image Processing — Unit 2 Study Guide"),
@@ -54,7 +55,7 @@ main{flex:1;min-width:0;padding:40px 48px 100px;}
 .hero h1{font-family:Georgia,"Iowan Old Style",serif;font-size:2.1rem;margin:0 0 6px;color:var(--ink);}
 .hero .kicker{color:var(--accent);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:block;}
 .hero .dek{color:var(--ink-soft);font-size:1.05rem;max-width:60em;}
-section.concept{margin-top:56px;padding-top:8px;border-top:1px solid var(--rule);}
+section.concept{scroll-margin-top:4.5rem;margin-top:56px;padding-top:8px;border-top:1px solid var(--rule);}
 section.concept:first-of-type{border-top:none;}
 h2.concept-title{font-family:Georgia,"Iowan Old Style",serif;font-size:1.5rem;color:var(--ink);margin:0 0 4px;}
 h3{font-family:Georgia,"Iowan Old Style",serif;font-size:1.15rem;color:var(--ink);margin:28px 0 8px;}
@@ -91,6 +92,8 @@ th{background:var(--code-bg);}
 .qbox .qnum{color:var(--accent);font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;}
 .qbox .qmarks{float:right;color:var(--ink-soft);font-size:.78rem;}
 .qbox h4{margin:4px 0 10px;font-family:Georgia,serif;}
+.sec-link{display:block;text-decoration:none;color:inherit;}
+.sec-link:hover .qbox{border-color:var(--accent);}
 .recap-note{font-size:.85rem;color:var(--ink-soft);font-style:italic;}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .footer-nav{display:flex;justify-content:space-between;margin-top:70px;padding-top:20px;border-top:1px solid var(--rule);font-size:.9rem;}
@@ -105,11 +108,16 @@ th{background:var(--code-bg);}
 input[type=range]{width:100%;accent-color:var(--accent);}
 """
 
+def page_href(slug):
+    if slug == "index":
+        return f"{SITE_PREFIX}/"
+    return f"{SITE_PREFIX}/{slug}.html"
+
 def nav_html(active_slug):
     items = []
     for slug, short, _ in PAGES:
         cls = "active" if slug == active_slug else ""
-        items.append(f'<a class="{cls}" href="{slug}.html">{short}</a>')
+        items.append(f'<a class="{cls}" href="{page_href(slug)}" data-full-page>{short}</a>')
     return f"""
 <nav class="side">
   <p class="brand">Image Processing</p>
@@ -125,17 +133,39 @@ def nav_html(active_slug):
 """
 
 IMG_RE = re.compile(r'(src|href)="(assets/[^"]+)"')
+QBOX_RE = re.compile(r'<div class="qbox">.*?</div>', re.S)
 
-def inline_images(html):
+def rewrite_assets(html):
+    seen = {"n": 0}
     def repl(m):
         attr, relpath = m.groups()
-        abspath = os.path.join(ROOT, relpath)
-        with open(abspath, "rb") as f:
-            data = f.read()
-        mime = mimetypes.guess_type(abspath)[0] or "application/octet-stream"
-        b64 = base64.b64encode(data).decode("ascii")
-        return f'{attr}="data:{mime};base64,{b64}"'
+        url = f"{SITE_PREFIX}/{relpath}"
+        abspath = os.path.join(ROOT, relpath.replace("/", os.sep))
+        if not os.path.isfile(abspath):
+            print("MISSING asset:", relpath)
+        if attr != "src":
+            return f'{attr}="{url}"'
+        seen["n"] += 1
+        extra = ' decoding="async"'
+        if seen["n"] <= 2:
+            extra += ' fetchpriority="high"'
+        else:
+            extra += ' loading="lazy"'
+        return f'{attr}="{url}"{extra}'
     return IMG_RE.sub(repl, html)
+
+def wrap_index_cards(body):
+    slugs = [slug for slug, _, _ in PAGES if slug != "index"]
+    i = {"n": 0}
+    def repl(m):
+        slug = slugs[i["n"]]
+        i["n"] += 1
+        return (
+            f'<a class="sec-link" href="{page_href(slug)}" data-full-page>\n'
+            f"    {m.group(0)}\n"
+            f"    </a>"
+        )
+    return QBOX_RE.sub(repl, body, count=len(slugs))
 
 def build():
     for i, (slug, short, title) in enumerate(PAGES):
@@ -145,17 +175,23 @@ def build():
             continue
         with open(frag_path, encoding="utf-8") as f:
             body = f.read()
+        if slug == "index":
+            body = wrap_index_cards(body)
+        body = rewrite_assets(body)
 
         prev_link = ""
         next_link = ""
+        prefetch = []
         if i > 0:
             pslug, pshort, _ = PAGES[i-1]
-            prev_link = f'<a href="{pslug}.html">&larr; {pshort}</a>'
+            prev_link = f'<a href="{page_href(pslug)}" data-full-page>&larr; {pshort}</a>'
+            prefetch.append(f'<link rel="prefetch" href="{page_href(pslug)}">')
         else:
             prev_link = "<span></span>"
         if i < len(PAGES)-1:
             nslug, nshort, _ = PAGES[i+1]
-            next_link = f'<a href="{nslug}.html">{nshort} &rarr;</a>'
+            next_link = f'<a href="{page_href(nslug)}" data-full-page>{nshort} &rarr;</a>'
+            prefetch.append(f'<link rel="prefetch" href="{page_href(nslug)}">')
         else:
             next_link = "<span></span>"
 
@@ -168,8 +204,12 @@ def build():
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} · IP Unit 2</title>
 <style>{CSS}</style>
+<link rel="stylesheet" href="/css/annotate.css">
+<script defer src="/js/annotate.js"></script>
+{"".join(prefetch)}
 </head>
 <body>
+<div id="archive-bar" style="position:sticky;top:0;z-index:9999;display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:.55rem 1rem;font-family:Georgia,serif;font-size:.85rem;background:rgba(246,243,238,.96);border-bottom:1px solid #ddd6ca;"><a href="/index.html" style="color:#1c1a17;text-decoration:none">The Latent Archive</a><span style="color:#8c8578">Image Processing · Unit 2</span><a href="/image-processing/" style="color:#8a3813;text-decoration:none">Back to folder</a></div>
 <div class="layout">
 {nav_html(slug)}
 <main>
@@ -180,9 +220,8 @@ def build():
 </body>
 </html>"""
 
-        page = inline_images(page)
         out_path = os.path.join(ROOT, f"{slug}.html")
-        with open(out_path, "w", encoding="utf-8") as f:
+        with open(out_path, "w", encoding="utf-8", newline="\n") as f:
             f.write(page)
         print("built", out_path, len(page), "bytes")
 
